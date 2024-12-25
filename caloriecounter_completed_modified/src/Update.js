@@ -48,8 +48,31 @@ export function editMealMsg(editId) {
   };
 }
 
-function update(msg, model) {
-  console.log('update', msg, model);
+const CORE_MSGS = {
+  ADD_MEAL: 'ADD_MEAL',
+}
+
+function updateCoreModel(msg, model) {
+  console.log('updateCoreModel', msg, model);
+
+  switch (msg.type) {
+    case CORE_MSGS.ADD_MEAL: {
+      const nextId = model.nextId + 1;
+      const { meal } = msg.payload;
+      const meals = [...model.meals, { ...meal, id: model.nextId }];
+      return { 
+        ...model, 
+        meals,
+        nextId
+      };
+    }
+  }
+}
+
+
+
+export function updatePresentationModel(msg, model) {
+  console.log('updatePresentationModel', msg, model);
   switch (msg.type) {
     case MSGS.INIT: {
       console.log('INIT');
@@ -73,7 +96,8 @@ function update(msg, model) {
           ...model.presentation,
           showForm, 
           description: '', 
-          calories: 0 
+          calories: 0,
+          editId: null
         }
       };
     }
@@ -104,7 +128,7 @@ function update(msg, model) {
       const { editId } = model.presentation;
       const updatedModel = editId !== null ? 
         edit(msg, model) : 
-        add(msg, model);
+        UpdatePresentationAddMeal(msg, model);
       return updatedModel;
     }
     case MSGS.DELETE_MEAL: {
@@ -143,21 +167,38 @@ function update(msg, model) {
   return model;
 }
 
-function add(msg, model) {
-  const { nextId, description, calories } = model.presentation;
-  const meal = { id: nextId, description, calories };
-  const meals = [...model.presentation.meals, meal]
-  return {
-    ...model,
-    presentation: {
-      ...model.presentation,
-      meals,
-      nextId: nextId + 1,
-      description: '',
-      calories: 0,
-      showForm: false,
+function UpdatePresentationAddMeal(msg, model) {
+  const { description, calories } = model.presentation;
+  const meal = { description, calories };
+
+  const coreModel = updateCoreModel(
+    {
+      type: CORE_MSGS.ADD_MEAL,
+      payload: {
+        meal      
+      }
+    }, 
+    model.core
+  );
+
+  const updatedModel = updatePresentationModel(
+    {
+      type: MSGS.INIT,
+      payload: {
+        core: coreModel,
+        presentation: {
+          // ...model.presentation,
+          editId: null,
+          description: '',  
+          calories: 0,
+          showForm: false
+        }
+      }
     }
-  };
+  )
+
+  return updatedModel;
+
 }
 
 function edit(msg, model) {
@@ -184,5 +225,3 @@ function edit(msg, model) {
     }
   };
 }
-
-export default update;

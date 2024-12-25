@@ -151,7 +151,7 @@ function formView(dispatch, model) {
     );
 }
 
-function view(dispatch, model) {
+export function view(dispatch, model) {
   const { core, presentation } = model;
   return div({ className: 'mw6 center' }, [
     formView(dispatch, presentation),
@@ -159,5 +159,3 @@ function view(dispatch, model) {
     pre(JSON.stringify(model, null, 2)),
   ]);
 }
-
-export default view;

@@ -30,4 +30,4 @@ function app(initCoreModel, initPresentationModel, update, view, node) {
   }
 }
 
-export default app;
+export { app };

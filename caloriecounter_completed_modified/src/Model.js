@@ -1,15 +1,19 @@
 export const initCoreModel = {
   
-    nextId: 0,
-    editId: null,
-    meals: [],
-  
+    nextId: 2,
+    meals: [
+      {
+        "id": 1,
+        "description": "a",
+        "calories": 1
+      },
+    ]  
 };
 
 export const initPresentationModel = {
-  
-    description: '',  
-    calories: 0,
-    showForm: false
+  editId: null,
+  description: '',  
+  calories: 0,
+  showForm: false
   
 };
