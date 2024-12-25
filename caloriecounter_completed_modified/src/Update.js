@@ -23,16 +23,12 @@ export function updatePresentationModel(msg, model) {
     }
     case MSGS.SHOW_FORM: {
       const { showForm } = msg;
-      return { 
-        ...model,
-        presentation: { 
-          ...model.presentation,
-          showForm, 
-          description: '', 
-          calories: 0,
-          editId: null
-        }
-      };
+      return R.pipe(
+        model => updateIn(model, ['presentation', 'showForm'], () => showForm),
+        model => updateIn(model, ['presentation', 'description'], () => ''),
+        model => updateIn(model, ['presentation', 'calories'], () => 0),
+        model => updateIn(model, ['presentation', 'editId'], () => null)
+      )(model);
     }
     case MSGS.MEAL_INPUT: {
       return updateIn(model, ['presentation', 'description'], () => msg.description);
@@ -54,35 +50,24 @@ export function updatePresentationModel(msg, model) {
     }
     case MSGS.DELETE_MEAL: {
       const { id } = msg;
-      const meals = R.filter(
-        meal => meal.id !== id
-      , model.presentation.meals);
-      return { 
-        ...model,
-        presentation: { 
-          ...model.presentation,
-          meals 
-        }
-      };
+      return updateIn(model, ['presentation', 'meals'], 
+        meals => R.filter(meal => meal.id !== id, meals)
+      );
     }
     case MSGS.EDIT_MEAL: {
       const { editId } = msg;
-      const meal = R.find(
-        meal => meal.id === editId, 
-        model.presentation.meals);
-      
-      const { description, calories } = meal;
-
-      return {
-        ...model, 
-        presentation: { 
-          ...model.presentation,
-          editId, 
-          description, 
-          calories,
-          showForm: true, 
+      return R.pipe(
+        model => {
+          const meal = R.find(R.propEq('id', editId), model.presentation.meals);
+          return updateIn(model, ['presentation'], presentation => ({
+            ...presentation,
+            editId,
+            description: R.prop('description', meal),
+            calories: R.prop('calories', meal),
+            showForm: true
+          }));
         }
-      };
+      )(model);
     }
   }
   return model;
@@ -90,25 +75,18 @@ export function updatePresentationModel(msg, model) {
 
 function edit(msg, model) {
   const { description, calories, editId } = model.presentation;
-  const meals = R.map(meal => {
-    if (meal.id === editId) {
-      return { 
-        ...meal,
-        description,
-        calories
-      };
-    }
-    return meal;
-  }, model.presentation.meals);
-  return {
-    ...model,
-    presentation: {
-      ...model.presentation,
-      meals,
-      description: '',
-      calories: 0,
-      showForm: false,
-      editId: null,
-    }
-  };
+  return updateIn(model, ['presentation'], presentation => ({
+    ...presentation,
+    meals: R.map(
+      R.when(
+        R.propEq('id', editId),
+        meal => ({ ...meal, description, calories })
+      ),
+      presentation.meals
+    ),
+    description: '',
+    calories: 0,
+    showForm: false,
+    editId: null
+  }));
 }
