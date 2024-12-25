@@ -11,8 +11,7 @@ function app(initCoreModel, initPresentationModel, update, view, node) {
           ...initPresentationModel,
           meals: initCoreModel.meals,
           // TODO: remove this once core layer is implemented
-          nextId: initCoreModel.nextId,
-          editId: initCoreModel.editId
+          nextId: initCoreModel.nextId
         }
       }
     }, 

@@ -1,6 +1,8 @@
 
 const CORE_MSGS = {
   ADD_MEAL: 'ADD_MEAL',
+  EDIT_MEAL: 'EDIT_MEAL',
+  DELETE_MEAL: 'DELETE_MEAL',
 }
 
 function updateCore(msg, model) {
@@ -16,6 +18,18 @@ function updateCore(msg, model) {
         meals,
         nextId
       };
+    }
+
+    case CORE_MSGS.EDIT_MEAL: {
+      const { meal } = msg.payload;
+      const meals = model.meals.map(m => m.id === meal.id ? meal : m);
+      return { ...model, meals };
+    }
+
+    case CORE_MSGS.DELETE_MEAL: {
+      const { id } = msg.payload;
+      const meals = model.meals.filter(m => m.id !== id);
+      return { ...model, meals };
     }
   }
 }

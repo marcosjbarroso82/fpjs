@@ -11,7 +11,7 @@ export const initCoreModel = {
 };
 
 export const mealResetData = {
-  editId: null,
+  id: null,
   description: '',  
   calories: 0,
 };

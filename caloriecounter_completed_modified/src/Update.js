@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { updateIn } from 'immutable';
 import { MSGS } from './UpdateMsgs';
-import { UpdatePresentationAddMeal } from './UpdateHelpers';
+import { UpdatePresentationAddMeal, UpdatePresentationEditMeal, UpdatePresentationDeleteMeal} from './UpdateHelpers';
 import { mealResetData } from './Model';
 
 
@@ -46,27 +46,24 @@ export function updatePresentationModel(msg, model) {
     }
 
     case MSGS.SAVE_MEAL: {
-      const { editId } = model.presentation.mealDetailData;
-      const updatedModel = editId !== null ? 
-        edit(msg, model) : 
+      const { id } = model.presentation.mealDetailData;
+      const updatedModel = id !== null ? 
+        UpdatePresentationEditMeal(msg, model) : 
         UpdatePresentationAddMeal(msg, model);
       return updatedModel;
     }
     case MSGS.DELETE_MEAL: {
-      const { id } = msg;
-      return updateIn(model, ['presentation', 'meals'], 
-        meals => R.filter(meal => meal.id !== id, meals)
-      );
+      return UpdatePresentationDeleteMeal(msg, model);
     }
     case MSGS.EDIT_MEAL: {
-      const { editId } = msg;
+      const { id } = msg;
       return R.pipe(
         model => {
-          const meal = R.find(R.propEq('id', editId), model.presentation.meals);
+          const meal = R.find(R.propEq('id', id), model.presentation.meals);
           return updateIn(model, ['presentation'], presentation => ({
             ...presentation,
             mealDetailData: {
-              editId,
+              id,
               description: R.prop('description', meal),
               calories: R.prop('calories', meal)
             },
@@ -80,12 +77,12 @@ export function updatePresentationModel(msg, model) {
 }
 
 function edit(msg, model) {
-  const { description, calories, editId } = model.presentation.mealDetailData;
+  const { description, calories, id } = model.presentation.mealDetailData;
   return updateIn(model, ['presentation'], presentation => ({
     ...presentation,
     meals: R.map(
       R.when(
-        R.propEq('id', editId),
+        R.propEq('id', id),
         meal => ({ ...meal, description, calories })
       ),
       presentation.meals

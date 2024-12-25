@@ -11,10 +11,10 @@ export const MSGS = {
 
 export const saveMealMsg = { type: MSGS.SAVE_MEAL };
 
-export function editMealMsg(editId) {
+export function editMealMsg(id) {
   return {
     type: MSGS.EDIT_MEAL,
-    editId,
+    id,
   };
 }
 
