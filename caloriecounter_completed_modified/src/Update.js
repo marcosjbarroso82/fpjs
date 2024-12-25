@@ -1,74 +1,7 @@
 import * as R from 'ramda';
-
-
-const MSGS = {
-  INIT: 'INIT',
-  SHOW_FORM: 'SHOW_FORM',
-  MEAL_INPUT: 'MEAL_INPUT',
-  CALORIES_INPUT: 'CALORIES_INPUT',
-  SAVE_MEAL: 'SAVE_MEAL',
-  DELETE_MEAL: 'DELETE_MEAL',
-  EDIT_MEAL: 'EDIT_MEAL',
-};
-
-export function showFormMsg(showForm) {
-  return {
-    type: MSGS.SHOW_FORM,
-    showForm,
-  };
-}
-
-export function mealInputMsg(description) {
-  return {
-    type: MSGS.MEAL_INPUT,
-    description,
-  };
-}
-
-export function caloriesInputMsg(calories) {
-  return {
-    type: MSGS.CALORIES_INPUT,
-    calories,
-  };
-}
-
-export const saveMealMsg = { type: MSGS.SAVE_MEAL };
-
-export function deleteMealMsg(id) {
-  return {
-    type: MSGS.DELETE_MEAL,
-    id,
-  };
-}
-
-export function editMealMsg(editId) {
-  return {
-    type: MSGS.EDIT_MEAL,
-    editId,
-  };
-}
-
-const CORE_MSGS = {
-  ADD_MEAL: 'ADD_MEAL',
-}
-
-function updateCoreModel(msg, model) {
-  console.log('updateCoreModel', msg, model);
-
-  switch (msg.type) {
-    case CORE_MSGS.ADD_MEAL: {
-      const nextId = model.nextId + 1;
-      const { meal } = msg.payload;
-      const meals = [...model.meals, { ...meal, id: model.nextId }];
-      return { 
-        ...model, 
-        meals,
-        nextId
-      };
-    }
-  }
-}
-
+import { updateIn } from 'immutable';
+import { MSGS } from './UpdateMsgs';
+import { UpdatePresentationAddMeal } from './UpdateHelpers';
 
 
 export function updatePresentationModel(msg, model) {
@@ -102,27 +35,15 @@ export function updatePresentationModel(msg, model) {
       };
     }
     case MSGS.MEAL_INPUT: {
-      const { description } = msg;
-      return { 
-        ...model,
-        presentation: { 
-          ...model.presentation,
-          description 
-        }
-      };
+      return updateIn(model, ['presentation', 'description'], () => msg.description);
     }
     case MSGS.CALORIES_INPUT: {
       const calories = R.pipe(
         parseInt, 
         R.defaultTo(0),
       )(msg.calories);
-      return { 
-        ...model,
-        presentation: { 
-          ...model.presentation,
-          calories 
-        }
-      };
+      
+      return updateIn(model, ['presentation', 'calories'], () => calories);
     }
     case MSGS.SAVE_MEAL: {
       const { editId } = model.presentation;
@@ -165,40 +86,6 @@ export function updatePresentationModel(msg, model) {
     }
   }
   return model;
-}
-
-function UpdatePresentationAddMeal(msg, model) {
-  const { description, calories } = model.presentation;
-  const meal = { description, calories };
-
-  const coreModel = updateCoreModel(
-    {
-      type: CORE_MSGS.ADD_MEAL,
-      payload: {
-        meal      
-      }
-    }, 
-    model.core
-  );
-
-  const updatedModel = updatePresentationModel(
-    {
-      type: MSGS.INIT,
-      payload: {
-        core: coreModel,
-        presentation: {
-          // ...model.presentation,
-          editId: null,
-          description: '',  
-          calories: 0,
-          showForm: false
-        }
-      }
-    }
-  )
-
-  return updatedModel;
-
 }
 
 function edit(msg, model) {

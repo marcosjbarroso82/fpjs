@@ -1,14 +1,12 @@
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import * as R from 'ramda';
-import { 
-  showFormMsg,
-  mealInputMsg,
-  caloriesInputMsg,
-  saveMealMsg,
-  deleteMealMsg,
-  editMealMsg,
-} from './Update';
+import { saveMealMsg } from './UpdateMsgs';
+import { editMealMsg } from './UpdateMsgs';
+import { deleteMealMsg } from './UpdateMsgs';
+import { caloriesInputMsg } from './UpdateMsgs';
+import { mealInputMsg } from './UpdateMsgs';
+import { showFormMsg } from './UpdateMsgs';
 
 const {
   pre,
