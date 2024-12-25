@@ -1,11 +1,11 @@
 import { updatePresentationModel } from './Update';
 import { updateCore, CORE_MSGS } from './UpdateCore';
 import { MSGS } from './UpdateMsgs';
-
+import { mealResetData } from './Model';
 
 export function UpdatePresentationAddMeal(msg, model) {
-  const { description, calories } = model.presentation;
-  const meal = { description, calories };
+  const { description, calories, editId } = model.presentation.mealDetailData;
+  const meal = { description, calories, editId };
 
   const coreModel = updateCore(
     {
@@ -23,10 +23,7 @@ export function UpdatePresentationAddMeal(msg, model) {
       payload: {
         core: coreModel,
         presentation: {
-          // ...model.presentation,
-          editId: null,
-          description: '',
-          calories: 0,
+          mealDetailData: mealResetData,
           showForm: false
         }
       }
@@ -34,6 +31,5 @@ export function UpdatePresentationAddMeal(msg, model) {
   );
 
   return updatedModel;
-
 }
 

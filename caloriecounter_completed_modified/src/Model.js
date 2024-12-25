@@ -10,10 +10,13 @@ export const initCoreModel = {
     ]  
 };
 
-export const initPresentationModel = {
+export const mealResetData = {
   editId: null,
   description: '',  
   calories: 0,
+};
+
+export const initPresentationModel = {
+  mealDetailData: mealResetData,
   showForm: false
-  
 };

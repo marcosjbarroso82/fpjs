@@ -119,7 +119,8 @@ function buttonSet(dispatch) {
 }
 
 function formView(dispatch, model) {
-  const { description, calories, showForm } = model;
+  const { showForm } = model;
+  const { description, calories } = model.mealDetailData;
   if (showForm) {
     return form(
       {
