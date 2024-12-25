@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { updateIn } from 'immutable';
+import * as imm from 'immutable';
 import { MSGS } from './UpdateMsgs';
 import { UpdatePresentationAddMeal, UpdatePresentationEditMeal, UpdatePresentationDeleteMeal} from './UpdateHelpers';
 import { mealResetData } from './Model';
@@ -13,7 +13,7 @@ export function updatePresentationModel(msg, model) {
       console.log('INIT');
       const { core, presentation } = msg.payload;
       return {
-        ...model,
+        // ...model,
         core: {
           ...core
         },
@@ -26,14 +26,13 @@ export function updatePresentationModel(msg, model) {
 
     case MSGS.SHOW_FORM: {
       const { showForm } = msg;
-      return R.pipe(
-        model => updateIn(model, ['presentation', 'showForm'], () => showForm),
-          model => updateIn(model, ['presentation', 'mealDetailData'], () => mealResetData)
-      )(model);
+      return imm.fromJS(model)
+        .setIn(['presentation', 'showForm'], showForm)
+        .setIn(['presentation', 'mealDetailData'], mealResetData).toJS();
     }
 
     case MSGS.MEAL_INPUT: {
-      return updateIn(model, ['presentation', 'mealDetailData', 'description'], () => msg.description);
+      return imm.fromJS(model).setIn(['presentation', 'mealDetailData', 'description'], msg.description).toJS();
     }
 
     case MSGS.CALORIES_INPUT: {
@@ -42,7 +41,8 @@ export function updatePresentationModel(msg, model) {
         R.defaultTo(0),
       )(msg.calories);
       
-      return updateIn(model, ['presentation', 'mealDetailData', 'calories'], () => calories);
+      return imm.fromJS(model).
+        setIn(['presentation', 'mealDetailData', 'calories'], calories).toJS();
     }
 
     case MSGS.SAVE_MEAL: {
@@ -60,15 +60,12 @@ export function updatePresentationModel(msg, model) {
       return R.pipe(
         model => {
           const meal = R.find(R.propEq('id', id), model.presentation.meals);
-          return updateIn(model, ['presentation'], presentation => ({
-            ...presentation,
-            mealDetailData: {
-              id,
-              description: R.prop('description', meal),
-              calories: R.prop('calories', meal)
-            },
-            showForm: true
-          }));
+          return imm.fromJS(model)
+            .setIn(['presentation', 'mealDetailData', 'id'], id)
+            .setIn(['presentation', 'mealDetailData', 'description'], R.prop('description', meal))
+            .setIn(['presentation', 'mealDetailData', 'calories'], R.prop('calories', meal))
+            .setIn(['presentation', 'showForm'], true)
+            .toJS();
         }
       )(model);
     }
@@ -78,16 +75,15 @@ export function updatePresentationModel(msg, model) {
 
 function edit(msg, model) {
   const { description, calories, id } = model.presentation.mealDetailData;
-  return updateIn(model, ['presentation'], presentation => ({
-    ...presentation,
-    meals: R.map(
+  return imm.fromJS(model)
+    .setIn(['presentation', 'meals'], R.map(
       R.when(
         R.propEq('id', id),
         meal => ({ ...meal, description, calories })
       ),
       presentation.meals
-    ),
-    mealDetailData: mealResetData,
-    showForm: false
-  }));
+    ))
+    .setIn(['presentation', 'mealDetailData'], mealResetData)
+    .setIn(['presentation', 'showForm'], false)
+    .toJS();
 }
