@@ -2,7 +2,7 @@ import { h, diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 
 function app(initModel, update, view, node) {
-  let model = initModel;
+  let model = update({'type': 'INIT'}, initModel);
   let currentView = view(dispatch, model);
   let rootNode = createElement(currentView);
   node.appendChild(rootNode);
