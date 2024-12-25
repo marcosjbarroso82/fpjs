@@ -53,10 +53,15 @@ function update(msg, model) {
   switch (msg.type) {
     case MSGS.INIT: {
       console.log('INIT');
+      const { core, presentation } = msg.payload;
       return {
-        model,
+        ...model,
+        core: {
+          ...core
+        },
         presentation: {
-          ...model.core
+          ...presentation,
+          meals: core.meals
         }
       };
     }

@@ -1,10 +1,15 @@
-const initModel = {
-  'core': {
-    showForm: false,
+export const initCoreModel = {
+  
     nextId: 0,
     editId: null,
     meals: [],
-  }
+  
 };
 
-export default initModel;
+export const initPresentationModel = {
+  
+    description: '',  
+    calories: 0,
+    showForm: false
+  
+};

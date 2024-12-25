@@ -154,7 +154,6 @@ function formView(dispatch, model) {
 function view(dispatch, model) {
   const { core, presentation } = model;
   return div({ className: 'mw6 center' }, [
-    h1({ className: 'f2 pv2 bb' }, 'Calorie Counter'),
     formView(dispatch, presentation),
     tableView(dispatch, presentation.meals),
     pre(JSON.stringify(model, null, 2)),
