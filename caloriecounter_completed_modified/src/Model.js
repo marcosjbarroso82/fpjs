@@ -7,6 +7,26 @@ export const initCoreModel = {
         "description": "a",
         "calories": 1
       },
+      {
+        "id": 2,
+        "description": "b",
+        "calories": 2
+      },
+      {
+        "id": 3,
+        "description": "c",
+        "calories": 3
+      },
+      {
+        "id": 4,
+        "description": "d",
+        "calories": 4
+      },
+      {
+        "id": 5,
+        "description": "e",
+        "calories": 5
+      },
     ]  
 };
 

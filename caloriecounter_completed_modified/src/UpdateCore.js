@@ -1,3 +1,16 @@
+import {
+  update,
+  $push,
+  $unshift,
+  $splice,
+  $assign,
+  $toggle,
+  $unset,
+  $set,
+  $remove,
+  $filter
+} from "immhelper";
+
 
 const CORE_MSGS = {
   ADD_MEAL: 'ADD_MEAL',
@@ -9,28 +22,30 @@ function updateCore(msg, model) {
   console.log('updateCoreModel', msg, model);
 
   switch (msg.type) {
+
     case CORE_MSGS.ADD_MEAL: {
-      const nextId = model.nextId + 1;
-      const { meal } = msg.payload;
-      const meals = [...model.meals, { ...meal, id: model.nextId }];
-      return { 
-        ...model, 
-        meals,
-        nextId
-      };
+      return update(model, {
+        meals: [$push, msg.payload.meal],
+        nextId: [[x => x + 1]]
+      });
     }
 
     case CORE_MSGS.EDIT_MEAL: {
-      const { meal } = msg.payload;
-      const meals = model.meals.map(m => m.id === meal.id ? meal : m);
-      return { ...model, meals };
+      return update(model, {
+        meals: [[meal => meal.id === msg.payload.meal.id ? msg.payload.meal : meal]]
+      });
     }
 
     case CORE_MSGS.DELETE_MEAL: {
-      const { id } = msg.payload;
-      const meals = model.meals.filter(m => m.id !== id);
-      return { ...model, meals };
+      return update(model, {
+        meals: [$filter, x => x.id !== msg.payload.id]
+      });
     }
+
+    default: {
+      return model;
+    }
+
   }
 }
 
