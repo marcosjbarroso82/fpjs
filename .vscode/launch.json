@@ -7,7 +7,7 @@
             "request": "launch",
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/caloriecounter_completed_modified",
+            "webRoot": "${workspaceFolder}/tree_framework",
             "sourceMaps": true,
             "trace": true,
             "userDataDir": true,
@@ -24,7 +24,7 @@
             "name": "Launch Vite Dev Server",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run", "dev"],
-            "cwd": "${workspaceFolder}/caloriecounter_completed_modified",
+            "cwd": "${workspaceFolder}/tree_framework",
             "sourceMaps": true,
             "resolveSourceMapLocations": [
                 "${workspaceFolder}/**",
