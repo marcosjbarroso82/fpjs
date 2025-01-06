@@ -2,12 +2,25 @@ import './style.css';
 import { h, diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import hh from 'hyperscript-helpers';
+import {
+    update,
+    $push,
+    $unshift,
+    $splice,
+    $assign,
+    $toggle,
+    $unset,
+    $set,
+    $remove,
+    $filter
+  } from "immhelper";
 
 
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } = hh(h);
 
 const initialData = {
+    debug_msg: 'initialData',
     data: {
         counter: 0,
     },
@@ -27,24 +40,17 @@ const counterControllerStateUpdate = (executionParams) => {
     }
     switch(executionParams.msg.type) {
         case COUNTER_CONTROLLER_INCREMENT_BY:
+            const incrementBy = executionParams.msg.payload;
+            
+            let result = update(executionParams, {
+                'nextMsg': [$set, null],
+                'executed': [$set, true],
+                // 'model.debug_msg': [$set, 'xxxxxxxxx'],
+                'model.appInternalState.counterComponent.incrementBy': [$set, incrementBy],
 
-            return {
-                model: {    
-                    ...executionParams.model,
-                    appInternalState: {
-                        ...executionParams.model.appInternalState,
-                        counterComponent: {
-                            ...executionParams.model.appInternalState.counterComponent,
-                            incrementBy: executionParams.msg.payload,
-                        }
-                    },
-                    output: {
-                        ...executionParams.model.output
-                    }
-                },
-                nextMsg: null,
-                executed: true
-            }
+            });
+
+            return result;
         default:
             return executionParams
     }
