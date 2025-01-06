@@ -18,34 +18,46 @@ const initialData = {
     },
     output: {}
 }
+const COUNTER_CONTROLLER_INCREMENT_BY = 'COUNTER_CONTROLLER_INCREMENT_BY';
 
-const counterStateUpdate = (msg, model) => {
-    if (msg === null) {
-        return model
+const counterControllerStateUpdate = (executionParams) => {
+    console.log('counterStateUpdate', executionParams);
+    if (executionParams.msg === null || executionParams.executed)  {
+        return executionParams
     }
-    switch(msg.type) {
-        case 'INCREMENT_BY':
+    switch(executionParams.msg.type) {
+        case COUNTER_CONTROLLER_INCREMENT_BY:
+
             return {
-                ...model,
-                appInternalState: {
-                    ...model.appInternalState,
-                    counterComponent: {
-                        ...model.appInternalState.counterComponent,
-                        incrementBy: msg.payload
+                model: {    
+                    ...executionParams.model,
+                    appInternalState: {
+                        ...executionParams.model.appInternalState,
+                        counterComponent: {
+                            ...executionParams.model.appInternalState.counterComponent,
+                            incrementBy: executionParams.msg.payload,
+                        }
+                    },
+                    output: {
+                        ...executionParams.model.output
                     }
-                }
+                },
+                nextMsg: null,
+                executed: true
             }
         default:
-            return model
+            return executionParams
     }
 }
 
-const counterOutput = (msg, model) => {
+const counterViewStateUpdate = (executionParams) => {
+    console.log('counterOutput', executionParams);
     return {
-        ...model,
+        ...executionParams.model,
         output: {
-            counter: model.data.counter,
-            incrementBy: model.appInternalState.counterComponent.incrementBy
+            ...executionParams.model.output,
+            counter: executionParams.model.data.counter,
+            incrementBy: executionParams.model.appInternalState.counterComponent.incrementBy
         }
     }
 }
@@ -53,15 +65,21 @@ const counterOutput = (msg, model) => {
 
 
 const updatePipe = [
-    counterStateUpdate,
-    counterOutput
+    counterControllerStateUpdate,
+    counterViewStateUpdate
 
 ]
 
 function updatePipeExecuter(msg, updatePipe, model) {
+    const executionParams = {
+        model: model,
+        msg: msg,
+        nextMsg: null,
+        executed: false
+    }
     const newModel = updatePipe.reduce((acc, update) => {
-        return update(msg, acc);
-    }, model);
+        return update(acc);
+    }, executionParams);
 
     return newModel
 }
@@ -76,7 +94,7 @@ function renderCounterForm(dispatch, model) {
         input({
             type: 'number', 
             value: model.output.incrementBy, 
-            oninput: (e) => dispatch({type: 'INCREMENT_BY', payload: e.target.value})
+            oninput: (e) => dispatch({type: COUNTER_CONTROLLER_INCREMENT_BY, payload: e.target.value})
         }, 'Increment By: '),
         button({onclick: () => dispatch({type: 'INCREMENT'})}, 'Increment' ),
     ])
