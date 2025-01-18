@@ -16,6 +16,9 @@ import {
   } from "immhelper";
 
 
+const INIT_MSG = 'INIT_MSG';
+
+
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } = hh(h);
 
@@ -31,15 +34,13 @@ const initialData = {
     },
     output: {}
 }
-const COUNTER_CONTROLLER_INCREMENT_BY = 'COUNTER_CONTROLLER_INCREMENT_BY';
+const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';
 
 const counterControllerStateUpdate = (executionParams) => {
     console.log('counterStateUpdate', executionParams);
-    if (executionParams.msg === null || executionParams.executed)  {
-        return executionParams
-    }
+
     switch(executionParams.msg.type) {
-        case COUNTER_CONTROLLER_INCREMENT_BY:
+        case COUNTER_CTRL_SET_INCREMENT_BY:
             const incrementBy = executionParams.msg.payload;
             
             let result = update(executionParams, {
@@ -68,6 +69,21 @@ const counterViewStateUpdate = (executionParams) => {
     }
 }
 
+function renderCounterForm(dispatch, model) {
+    return div({}, [
+        label({}, 'Counter: '),
+        label({}, model.output.counter),
+        br(),
+        label({}, 'Increment By: '),
+        label({}, model.output.incrementBy),
+        input({
+            type: 'number', 
+            value: model.output.incrementBy, 
+            oninput: (e) => dispatch({type: COUNTER_CTRL_SET_INCREMENT_BY, payload: e.target.value})
+        }, 'Increment By: '),
+        button({onclick: () => dispatch({type: 'INCREMENT'})}, 'Increment' ),
+    ])
+}
 
 
 const updatePipe = [
@@ -84,29 +100,18 @@ function updatePipeExecuter(msg, updatePipe, model) {
         executed: false
     }
     const newModel = updatePipe.reduce((acc, update) => {
+        if (!acc.msg || acc.executed)  {
+            return acc
+        }
         return update(acc);
     }, executionParams);
 
     return newModel
 }
 
-function renderCounterForm(dispatch, model) {
-    return div({}, [
-        label({}, 'Counter: '),
-        label({}, model.output.counter),
-        br(),
-        label({}, 'Increment By: '),
-        label({}, model.output.incrementBy),
-        input({
-            type: 'number', 
-            value: model.output.incrementBy, 
-            oninput: (e) => dispatch({type: COUNTER_CONTROLLER_INCREMENT_BY, payload: e.target.value})
-        }, 'Increment By: '),
-        button({onclick: () => dispatch({type: 'INCREMENT'})}, 'Increment' ),
-    ])
-}
 
-function view(dispatch,model) {
+
+function view(dispatch ,model) {
     return div({}, [
         renderCounterForm(dispatch, model),
 
@@ -118,12 +123,10 @@ function view(dispatch,model) {
 }
 
 
-
-
 function app(initialData, node) {
     let model = initialData
  
-    model = updatePipeExecuter(null, updatePipe, model);
+    model = updatePipeExecuter(INIT_MSG, updatePipe, model);
     
     let currentView = view(dispatch, model);
     let rootNode = createElement(currentView);
