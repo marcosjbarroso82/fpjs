@@ -24,30 +24,41 @@ const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } =
 
 
 const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';
+const COUNTER_CTRL_INCREMENT = 'COUNTER_CTRL_INCREMENT';
 
 const counterControllerStateUpdate = (appState) => {
     console.log('counterStateUpdate', appState);
 
     switch(appState.msg.type) {
         case COUNTER_CTRL_SET_INCREMENT_BY:
-            const incrementBy = appState.msg.payload;
+            const incrementBy = parseInt(appState.msg.payload);
             
             let result = update(appState, {
                 'nextMsg': [$set, null],
                 'executed': [$set, true],
-                // 'model.debug_msg': [$set, 'xxxxxxxxx'],
                 'model.appInternalState.counterComponent.incrementBy': [$set, incrementBy],
 
             });
 
             return result;
+        case COUNTER_CTRL_INCREMENT:
+            const incrementByValue = appState.model.appInternalState.counterComponent.incrementBy;
+            const counterValue = appState.model.data.counter;
+            const newCounterValue = counterValue + incrementByValue;
+            return update(appState, {
+                'model.data.counter': [$set, newCounterValue],
+                'nextMsg': [$set, null],
+                'executed': [$set, true],
+            });
         default:
             return appState
     }
 }
 
 const counterViewStateUpdate = (appState) => {
-    return {
+    console.log('counterViewStateUpdate', appState);
+
+    let newAppState = {
         ...appState,
         model: {
             ...appState.model,
@@ -59,6 +70,8 @@ const counterViewStateUpdate = (appState) => {
             }
         }
     }
+
+    return newAppState
 }
 
 function renderCounterForm(dispatch, appState) {
@@ -73,7 +86,7 @@ function renderCounterForm(dispatch, appState) {
             value: appState.model.output.incrementBy, 
             oninput: (e) => dispatch({type: COUNTER_CTRL_SET_INCREMENT_BY, payload: e.target.value})
         }, 'Increment By: '),
-        button({onclick: () => dispatch({type: 'INCREMENT'})}, 'Increment' ),
+        button({onclick: () => dispatch({type: COUNTER_CTRL_INCREMENT})}, 'Increment' ),
     ])
 }
 
@@ -148,6 +161,7 @@ function app(node) {
     }
  
     appState = controllerPipeExecuter(controllerPipe, appState);
+    appState = viewPipeExecuter(viewPipe, appState);
     
     let currentView = view(dispatch, appState);
     let rootNode = createElement(currentView);
