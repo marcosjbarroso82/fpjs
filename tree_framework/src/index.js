@@ -22,28 +22,17 @@ const INIT_MSG = 'INIT_MSG';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } = hh(h);
 
-const initialData = {
-    debug_msg: 'initialData',
-    data: {
-        counter: 0,
-    },
-    appInternalState: {
-        counterComponent: {
-            incrementBy: 2
-        }
-    },
-    output: {}
-}
+
 const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';
 
-const counterControllerStateUpdate = (executionParams) => {
-    console.log('counterStateUpdate', executionParams);
+const counterControllerStateUpdate = (appState) => {
+    console.log('counterStateUpdate', appState);
 
-    switch(executionParams.msg.type) {
+    switch(appState.msg.type) {
         case COUNTER_CTRL_SET_INCREMENT_BY:
-            const incrementBy = executionParams.msg.payload;
+            const incrementBy = appState.msg.payload;
             
-            let result = update(executionParams, {
+            let result = update(appState, {
                 'nextMsg': [$set, null],
                 'executed': [$set, true],
                 // 'model.debug_msg': [$set, 'xxxxxxxxx'],
@@ -53,32 +42,35 @@ const counterControllerStateUpdate = (executionParams) => {
 
             return result;
         default:
-            return executionParams
+            return appState
     }
 }
 
-const counterViewStateUpdate = (executionParams) => {
-    console.log('counterOutput', executionParams);
+const counterViewStateUpdate = (appState) => {
     return {
-        ...executionParams.model,
-        output: {
-            ...executionParams.model.output,
-            counter: executionParams.model.data.counter,
-            incrementBy: executionParams.model.appInternalState.counterComponent.incrementBy
+        ...appState,
+        model: {
+            ...appState.model,
+            output: {
+                ...appState.model.output,
+                counter: appState.model.data.counter,
+                incrementBy: appState.model.appInternalState.counterComponent.incrementBy,
+                counterViewStateUpdateDebugTimeStamp: new Date().toISOString()
+            }
         }
     }
 }
 
-function renderCounterForm(dispatch, model) {
+function renderCounterForm(dispatch, appState) {
     return div({}, [
         label({}, 'Counter: '),
-        label({}, model.output.counter),
+        label({}, appState.model.output.counter),
         br(),
         label({}, 'Increment By: '),
-        label({}, model.output.incrementBy),
+        label({}, appState.model.output.incrementBy),
         input({
             type: 'number', 
-            value: model.output.incrementBy, 
+            value: appState.model.output.incrementBy, 
             oninput: (e) => dispatch({type: COUNTER_CTRL_SET_INCREMENT_BY, payload: e.target.value})
         }, 'Increment By: '),
         button({onclick: () => dispatch({type: 'INCREMENT'})}, 'Increment' ),
@@ -86,56 +78,88 @@ function renderCounterForm(dispatch, model) {
 }
 
 
-const updatePipe = [
+const controllerPipe = [
     counterControllerStateUpdate,
-    counterViewStateUpdate
 
 ]
 
-function updatePipeExecuter(msg, updatePipe, model) {
-    const executionParams = {
-        model: model,
-        msg: msg,
-        nextMsg: null,
-        executed: false
-    }
-    const newModel = updatePipe.reduce((acc, update) => {
+
+function controllerPipeExecuter(controllerPipe, appState) {
+   
+    let newAppState = controllerPipe.reduce((acc, update) => {
         if (!acc.msg || acc.executed)  {
             return acc
         }
         return update(acc);
-    }, executionParams);
+    }, appState);
 
-    return newModel
+
+    return newAppState
+}
+
+const viewPipe = [
+    counterViewStateUpdate
+]
+
+function viewPipeExecuter(viewPipe, appState) {
+    let newAppState = viewPipe.reduce((acc, update) => {
+        return update(acc);
+    }, appState);
+    return newAppState
 }
 
 
 
-function view(dispatch ,model) {
+function view(dispatch, appState) {
     return div({}, [
-        renderCounterForm(dispatch, model),
+        renderCounterForm(dispatch, appState),
 
         h2('Model'),
-        pre(JSON.stringify(model, null, 2)),
+        pre(JSON.stringify(appState, null, 2)),
         h2('Message Dispatcher'),
         p('To be implemented')
     ]);
 }
 
 
-function app(initialData, node) {
-    let model = initialData
+function app(node) {
+
+
+
+    let appState = {
+        model: {
+            debug_msg: 'initialData',
+            data: {
+                counter: 5,
+            },
+            appInternalState: {
+                counterComponent: {
+                    incrementBy: 2
+                }
+            },
+            output: {}
+        },
+        msg: {
+            type: INIT_MSG,
+            payload: null
+        },
+        nextMsg: null,
+        executed: false
+    }
  
-    model = updatePipeExecuter(INIT_MSG, updatePipe, model);
+    appState = controllerPipeExecuter(controllerPipe, appState);
     
-    let currentView = view(dispatch, model);
+    let currentView = view(dispatch, appState);
     let rootNode = createElement(currentView);
     node.appendChild(rootNode);
 
     function dispatch(msg) {
         console.log('dispatch', msg);
-        model = updatePipeExecuter(msg, updatePipe, model);
-        const updatedView = view(dispatch, model);
+        appState.msg = msg;
+        appState.executed = false;
+        appState = controllerPipeExecuter(controllerPipe, appState);
+        appState = viewPipeExecuter(viewPipe, appState);
+        const updatedView = view(dispatch, appState);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
         currentView = updatedView;
@@ -147,4 +171,4 @@ function app(initialData, node) {
 const node = document.getElementById('app');
 
 
-app(initialData, node);
+app(node);
