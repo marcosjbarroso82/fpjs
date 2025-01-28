@@ -1,7 +1,6 @@
 import './style.css';
 import { h, diff, patch } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
-import hh from 'hyperscript-helpers';
 import {
     update,
     $push,
@@ -17,8 +16,17 @@ import {
 import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, EXECUTE_NEXT_MSG } from './constants';
 import { view } from './view';
 
-const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } = hh(h);
 
+function pipeExecuter(pipe, appState) {
+    return pipe.reduce((acc, update) => {
+        // If the update is an array, recursively process it as a nested pipe
+        if (Array.isArray(update)) {
+            return pipeExecuter(update, acc);
+        }
+        // Otherwise, execute the update function normally
+        return update(acc);
+    }, appState);
+}
 
 const counterControllerStateUpdate = (appState) => {
     if (!appState.msg) return appState;
@@ -61,9 +69,6 @@ const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
 ]
 
-function pipeExecuter(pipe, appState) {
-    return pipe.reduce((acc, update) => update(acc), appState);
-}
 
 // View
 const VIEW_PIPE = [
@@ -116,6 +121,14 @@ const APP_PIPE = [
     appStateUpdate
 ]
 
+// Now we can combine all pipes into a single nested structure
+const MAIN_PIPE = [
+    APP_PIPE,
+    MODEL_PIPE,
+    CONTROLLER_PIPE,
+    VIEW_PIPE
+];
+
 function app(node) {
 
     let appState = 
@@ -144,10 +157,8 @@ function app(node) {
       "executed": true
     }
  
-    appState = pipeExecuter(APP_PIPE, appState);
-    appState = pipeExecuter(MODEL_PIPE, appState);
-    appState = pipeExecuter(CONTROLLER_PIPE, appState);
-    appState = pipeExecuter(VIEW_PIPE, appState);
+    // Initial execution
+    appState = pipeExecuter(MAIN_PIPE, appState);
     
     let currentView = view(dispatch, appState);
     let rootNode = createElement(currentView);
@@ -159,10 +170,9 @@ function app(node) {
         appState.msg = msg;
         appState.executed = false;
 
-        appState = pipeExecuter(APP_PIPE, appState);
-        appState = pipeExecuter(MODEL_PIPE, appState);
-        appState = pipeExecuter(CONTROLLER_PIPE, appState);
-        appState = pipeExecuter(VIEW_PIPE, appState);
+        // Replace multiple pipeExecuter calls with a single call
+        appState = pipeExecuter(MAIN_PIPE, appState);
+        
         const updatedView = view(dispatch, appState);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
