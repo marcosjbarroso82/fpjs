@@ -93,26 +93,14 @@ const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
 ]
 
-function controllerPipeExecuter(pipe, appState) {
-   
-    let newAppState = pipe.reduce((acc, update) => {
-        return update(acc);
-    }, appState);
-
-    return newAppState
+function pipeExecuter(pipe, appState) {
+    return pipe.reduce((acc, update) => update(acc), appState);
 }
 
 // View
 const VIEW_PIPE = [
     counterViewStateUpdate
 ]
-
-function viewPipeExecuter(pipe, appState) {
-    let newAppState = pipe.reduce((acc, update) => {
-        return update(acc);
-    }, appState);
-    return newAppState
-}
 
 function view(dispatch, appState) {
     return div({}, [
@@ -149,13 +137,6 @@ const MODEL_PIPE = [
     counterModelStateUpdate
 ]
 
-function modelPipeExecuter(pipe, appState) {
-    let newAppState = pipe.reduce((acc, update) => {
-        return update(acc);
-    }, appState);
-    return newAppState
-}
-
 // App
 
 const appStateUpdate = (appState) => {
@@ -179,16 +160,6 @@ const APP_PIPE = [
     appStateUpdate
 ]
 
-function appPipeExecuter(pipe, appState) {
-    let newAppState = pipe.reduce((acc, update) => {
-        return update(acc);
-    }, appState);
-    return newAppState
-}
-
-
-
-// App
 function app(node) {
 
     let appState = 
@@ -217,10 +188,10 @@ function app(node) {
       "executed": true
     }
  
-    appState = appPipeExecuter(APP_PIPE, appState);
-    appState = modelPipeExecuter(MODEL_PIPE, appState);
-    appState = controllerPipeExecuter(CONTROLLER_PIPE, appState);
-    appState = viewPipeExecuter(VIEW_PIPE, appState);
+    appState = pipeExecuter(APP_PIPE, appState);
+    appState = pipeExecuter(MODEL_PIPE, appState);
+    appState = pipeExecuter(CONTROLLER_PIPE, appState);
+    appState = pipeExecuter(VIEW_PIPE, appState);
     
     let currentView = view(dispatch, appState);
     let rootNode = createElement(currentView);
@@ -232,10 +203,10 @@ function app(node) {
         appState.msg = msg;
         appState.executed = false;
 
-        appState = appPipeExecuter(APP_PIPE, appState);
-        appState = modelPipeExecuter(MODEL_PIPE, appState);
-        appState = controllerPipeExecuter(CONTROLLER_PIPE, appState);
-        appState = viewPipeExecuter(VIEW_PIPE, appState);
+        appState = pipeExecuter(APP_PIPE, appState);
+        appState = pipeExecuter(MODEL_PIPE, appState);
+        appState = pipeExecuter(CONTROLLER_PIPE, appState);
+        appState = pipeExecuter(VIEW_PIPE, appState);
         const updatedView = view(dispatch, appState);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
