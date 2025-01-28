@@ -53,6 +53,7 @@ const COUNTER_MODEL_INCREMENT = 'COUNTER_MODEL_INCREMENT';
 const EXECUTE_NEXT_MSG = 'EXECUTE_NEXT_MSG';
 
 const counterControllerStateUpdate = (appState) => {
+    if (!appState.msg) return appState;
 
     switch(appState.msg.type) {
         case COUNTER_CTRL_SET_INCREMENT_BY:
@@ -95,9 +96,6 @@ const CONTROLLER_PIPE = [
 function controllerPipeExecuter(pipe, appState) {
    
     let newAppState = pipe.reduce((acc, update) => {
-        if (!acc.msg || acc.executed)  {
-            return acc
-        }
         return update(acc);
     }, appState);
 
@@ -132,6 +130,8 @@ function view(dispatch, appState) {
 
 const counterModelStateUpdate = (appState) => {
     console.log('counterModelStateUpdate', appState);
+    if (!appState.msg) return appState;
+    
     switch(appState.msg.type) {    
         case COUNTER_MODEL_INCREMENT:
             return update(appState, {
@@ -160,6 +160,8 @@ function modelPipeExecuter(pipe, appState) {
 
 const appStateUpdate = (appState) => {
     console.log('appStateUpdate', appState);
+    if (!appState.msg) return appState;
+    
     switch(appState.msg.type) {
         case EXECUTE_NEXT_MSG:
             let nextMsg = appState.nextMsg;     
