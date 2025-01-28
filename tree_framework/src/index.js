@@ -32,50 +32,37 @@ const counterControllerStateUpdate = (appState) => {
 
     switch(appState.msg.type) {
         case COUNTER_CTRL_SET_INCREMENT_BY:
-            const incrementBy = parseInt(appState.msg.payload);
-            
-            let result = update(appState, {
-                'nextMsg': [$set, null],
-                'executed': [$set, true],
-                'model.appInternalState.counterComponent.incrementBy': [$set, incrementBy],
-
-            });
-
-            return result;
-        case COUNTER_CTRL_INCREMENT:
-            const incrementByValue = appState.model.appInternalState.counterComponent.incrementBy;
-            const counterValue = appState.model.data.counter;
-            const newCounterValue = counterValue + incrementByValue;
             return update(appState, {
-                // 'model.data.counter': [$set, newCounterValue],
-                'nextMsg': [$set, {
-                    type: COUNTER_MODEL_INCREMENT,
-                    payload: newCounterValue
-                }],
-                'executed': [$set, true],
+                nextMsg: [$set, null],
+                executed: [$set, true],
+                'model.appInternalState.counterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
             });
+
+        case COUNTER_CTRL_INCREMENT:
+            const newValue = appState.model.data.counter + appState.model.appInternalState.counterComponent.incrementBy;
+            return update(appState, {
+                nextMsg: [$set, {
+                    type: COUNTER_MODEL_INCREMENT,
+                    payload: newValue
+                }],
+                executed: [$set, true]
+            });
+            
         default:
-            return appState
+            return appState;
     }
 }
 
 const counterViewStateUpdate = (appState) => {
     console.log('counterViewStateUpdate', appState);
-
-    let newAppState = {
-        ...appState,
-        model: {
-            ...appState.model,
-            output: {
-                ...appState.model.output,
-                counter: appState.model.data.counter,
-                incrementBy: appState.model.appInternalState.counterComponent.incrementBy,
-                counterViewStateUpdateDebugTimeStamp: new Date().toISOString()
-            }
-        }
-    }
-
-    return newAppState
+    
+    return update(appState, {
+        'model.output': [$assign, {
+            counter: appState.model.data.counter,
+            incrementBy: appState.model.appInternalState.counterComponent.incrementBy,
+            counterViewStateUpdateDebugTimeStamp: new Date().toISOString()
+        }]
+    });
 }
 
 function renderCounterForm(dispatch, appState) {
@@ -157,16 +144,16 @@ function view(dispatch, appState) {
 
 const counterModelStateUpdate = (appState) => {
     console.log('counterModelStateUpdate', appState);
-    switch(appState.msg.type) {	
+    switch(appState.msg.type) {    
         case COUNTER_MODEL_INCREMENT:
             return update(appState, {
                 'model.data.counter': [$set, appState.msg.payload],
-                'msg': [$set, null],
-                'nextMsg': [$set, null],
-                'executed': [$set, true],
+                msg: [$set, null],
+                nextMsg: [$set, null],
+                executed: [$set, true]
             });
         default:
-            return appState
+            return appState;
     }
 }
 
