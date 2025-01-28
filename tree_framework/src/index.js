@@ -15,55 +15,10 @@ import {
     $filter
   } from "immhelper";
 
-
-const INIT_MSG = 'INIT_MSG';
-
-
-
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br } = hh(h);
 
 
-const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';
-const COUNTER_CTRL_INCREMENT = 'COUNTER_CTRL_INCREMENT';
-const COUNTER_MODEL_INCREMENT = 'COUNTER_MODEL_INCREMENT';
-
-const counterControllerStateUpdate = (appState) => {
-    console.log('counterStateUpdate', appState);
-
-    switch(appState.msg.type) {
-        case COUNTER_CTRL_SET_INCREMENT_BY:
-            return update(appState, {
-                nextMsg: [$set, null],
-                executed: [$set, true],
-                'model.appInternalState.counterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
-            });
-
-        case COUNTER_CTRL_INCREMENT:
-            const newValue = appState.model.data.counter + appState.model.appInternalState.counterComponent.incrementBy;
-            return update(appState, {
-                nextMsg: [$set, {
-                    type: COUNTER_MODEL_INCREMENT,
-                    payload: newValue
-                }],
-                executed: [$set, true]
-            });
-            
-        default:
-            return appState;
-    }
-}
-
-const counterViewStateUpdate = (appState) => {
-    console.log('counterViewStateUpdate', appState);
-    
-    return update(appState, {
-        'model.output': [$assign, {
-            counter: appState.model.data.counter,
-            incrementBy: appState.model.appInternalState.counterComponent.incrementBy,
-            counterViewStateUpdateDebugTimeStamp: new Date().toISOString()
-        }]
-    });
-}
+// Renders
 
 function renderCounterForm(dispatch, appState) {
     return div({}, [
@@ -89,44 +44,77 @@ function renderDebug(dispatch, appState) {
     ])
 }
 
+
+// Constants
+const INIT_MSG = 'INIT_MSG';
+const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';
+const COUNTER_CTRL_INCREMENT = 'COUNTER_CTRL_INCREMENT';
+const COUNTER_MODEL_INCREMENT = 'COUNTER_MODEL_INCREMENT';
 const EXECUTE_NEXT_MSG = 'EXECUTE_NEXT_MSG';
 
+const counterControllerStateUpdate = (appState) => {
 
+    switch(appState.msg.type) {
+        case COUNTER_CTRL_SET_INCREMENT_BY:
+            return update(appState, {
+                nextMsg: [$set, null],
+                executed: [$set, true],
+                'model.appInternalState.counterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
+            });
 
-const controllerPipe = [
+        case COUNTER_CTRL_INCREMENT:
+            const newValue = appState.model.data.counter + appState.model.appInternalState.counterComponent.incrementBy;
+            return update(appState, {
+                nextMsg: [$set, {
+                    type: COUNTER_MODEL_INCREMENT,
+                    payload: newValue
+                }],
+                executed: [$set, true]
+            });
+            
+        default:
+            return appState;
+    }
+}
+
+const counterViewStateUpdate = (appState) => {
+    
+    return update(appState, {
+        'model.output': [$assign, {
+            counter: appState.model.data.counter,
+            incrementBy: appState.model.appInternalState.counterComponent.incrementBy,
+            counterViewStateUpdateDebugTimeStamp: new Date().toISOString()
+        }]
+    });
+}
+
+const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
 ]
 
-
-function controllerPipeExecuter(controllerPipe, appState) {
+function controllerPipeExecuter(pipe, appState) {
    
-    let newAppState = controllerPipe.reduce((acc, update) => {
+    let newAppState = pipe.reduce((acc, update) => {
         if (!acc.msg || acc.executed)  {
             return acc
         }
         return update(acc);
     }, appState);
 
-
     return newAppState
 }
 
 // View
-
-
-
-const viewPipe = [
+const VIEW_PIPE = [
     counterViewStateUpdate
 ]
 
-function viewPipeExecuter(viewPipe, appState) {
-    let newAppState = viewPipe.reduce((acc, update) => {
+function viewPipeExecuter(pipe, appState) {
+    let newAppState = pipe.reduce((acc, update) => {
         return update(acc);
     }, appState);
     return newAppState
 }
-
-
 
 function view(dispatch, appState) {
     return div({}, [
@@ -157,18 +145,18 @@ const counterModelStateUpdate = (appState) => {
     }
 }
 
-const modelPipe = [
+const MODEL_PIPE = [
     counterModelStateUpdate
 ]
 
-function modelPipeExecuter(modelPipe, appState) {
-    let newAppState = modelPipe.reduce((acc, update) => {
+function modelPipeExecuter(pipe, appState) {
+    let newAppState = pipe.reduce((acc, update) => {
         return update(acc);
     }, appState);
     return newAppState
 }
 
-// Debug
+// App
 
 const appStateUpdate = (appState) => {
     console.log('appStateUpdate', appState);
@@ -185,12 +173,12 @@ const appStateUpdate = (appState) => {
     }
 }
 
-const appPipe = [
+const APP_PIPE = [
     appStateUpdate
 ]
 
-function appPipeExecuter(debugPipe, appState) {
-    let newAppState = debugPipe.reduce((acc, update) => {
+function appPipeExecuter(pipe, appState) {
+    let newAppState = pipe.reduce((acc, update) => {
         return update(acc);
     }, appState);
     return newAppState
@@ -227,10 +215,10 @@ function app(node) {
       "executed": true
     }
  
-    appState = appPipeExecuter(appPipe, appState);
-    appState = modelPipeExecuter(modelPipe, appState);
-    appState = controllerPipeExecuter(controllerPipe, appState);
-    appState = viewPipeExecuter(viewPipe, appState);
+    appState = appPipeExecuter(APP_PIPE, appState);
+    appState = modelPipeExecuter(MODEL_PIPE, appState);
+    appState = controllerPipeExecuter(CONTROLLER_PIPE, appState);
+    appState = viewPipeExecuter(VIEW_PIPE, appState);
     
     let currentView = view(dispatch, appState);
     let rootNode = createElement(currentView);
@@ -242,10 +230,10 @@ function app(node) {
         appState.msg = msg;
         appState.executed = false;
 
-        appState = appPipeExecuter(appPipe, appState);
-        appState = modelPipeExecuter(modelPipe, appState);
-        appState = controllerPipeExecuter(controllerPipe, appState);
-        appState = viewPipeExecuter(viewPipe, appState);
+        appState = appPipeExecuter(APP_PIPE, appState);
+        appState = modelPipeExecuter(MODEL_PIPE, appState);
+        appState = controllerPipeExecuter(CONTROLLER_PIPE, appState);
+        appState = viewPipeExecuter(VIEW_PIPE, appState);
         const updatedView = view(dispatch, appState);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
