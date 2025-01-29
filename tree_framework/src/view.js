@@ -1,4 +1,4 @@
-import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, EXECUTE_NEXT_MSG } from './constants';
+import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, EXECUTE_NEXT_MSG, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY } from './constants';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 
@@ -29,9 +29,28 @@ export function renderCounterForm(dispatch, appState) {
         button({ onclick: () => dispatch({ type: COUNTER_CTRL_INCREMENT }) }, 'Increment'),
     ]);
 }
+
+
+
+export function renderAnotherCounterForm(dispatch, appState) {
+    return div({}, [
+        label({}, 'Counter: '),
+        label({}, appState.model.output.counter),
+        br(),
+        label({}, 'Increment By: '),
+        label({}, appState.model.output.anotherIncrementBy),
+        input({
+            type: 'number',
+            value: appState.model.output.anotherIncrementBy,
+            oninput: (e) => dispatch({ type: ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, payload: e.target.value })
+        }, 'Increment By: '),
+        button({ onclick: () => dispatch({ type: ANOTHER_COUNTER_CTRL_INCREMENT }) }, 'Increment'),
+    ]);
+}
 export function view(dispatch, appState) {
     return div({}, [
         renderCounterForm(dispatch, appState),
+        renderAnotherCounterForm(dispatch, appState),
 
         renderDebug(dispatch, appState),
     ]);

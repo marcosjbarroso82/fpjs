@@ -13,7 +13,7 @@ import {
     $remove,
     $filter
   } from "immhelper";
-import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, EXECUTE_NEXT_MSG } from './constants';
+import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, EXECUTE_NEXT_MSG } from './constants';
 import { view } from './view';
 
 
@@ -54,6 +54,36 @@ const counterControllerStateUpdate = (appState) => {
     }
 }
 
+
+const anotherCounterControllerStateUpdate = (appState) => {
+    if (!appState.msg) return appState;
+
+    switch(appState.msg.type) {
+        case ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY:
+            return update(appState, {
+                nextMsg: [$set, null],
+                executed: [$set, true],
+                'model.appInternalState.anotherCounterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
+            });
+
+        case ANOTHER_COUNTER_CTRL_INCREMENT:
+            const newValue = appState.model.data.counter + appState.model.appInternalState.anotherCounterComponent.incrementBy;
+            return update(appState, {
+                nextMsg: [$set, {
+                    type: COUNTER_MODEL_INCREMENT,
+                    payload: newValue
+                }],
+                executed: [$set, true]
+            });
+            
+        default:
+            return appState;
+    }
+}
+
+
+
+
 const counterViewStateUpdate = (appState) => {
     
     return update(appState, {
@@ -65,14 +95,28 @@ const counterViewStateUpdate = (appState) => {
     });
 }
 
+
+const anotherCounterViewStateUpdate = (appState) => {
+    
+    return update(appState, {
+        'model.output': [$assign, {
+            counter: appState.model.data.counter,
+            anotherIncrementBy: appState.model.appInternalState.anotherCounterComponent.incrementBy,
+            anotherCounterViewStateUpdateDebugTimeStamp: new Date().toISOString()
+        }]
+    });
+}
+
 const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
+    anotherCounterControllerStateUpdate
 ]
 
 
 // View
 const VIEW_PIPE = [
-    counterViewStateUpdate
+    counterViewStateUpdate,
+    anotherCounterViewStateUpdate
 ]
 
 // Model
@@ -141,11 +185,15 @@ function app(node) {
         "appInternalState": {
           "counterComponent": {
             "incrementBy": 2
+          },
+          "anotherCounterComponent": {
+            "incrementBy": 3
           }
         },
         "output": {
           "counter": 5,
           "incrementBy": 2,
+          "anotherIncrementBy": 3,
           "counterViewStateUpdateDebugTimeStamp": "2025-01-28T15:45:39.717Z"
         }
       },
