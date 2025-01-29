@@ -5,55 +5,61 @@ import {
 
 import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY } from './constantsCounter';
 
+const createController = (handler, statePath) => {
+    return (appState) => {
+        if (!appState.msg) return appState;
 
-export const counterControllerStateUpdate = (appState) => {
-    if (!appState.msg) return appState;
+        const internalState = appState.model.appInternalState[statePath];
+        const result = handler(internalState, appState.msg);
 
-    switch(appState.msg.type) {
-        case COUNTER_CTRL_SET_INCREMENT_BY:
-            return update(appState, {
-                nextMsg: [$set, null],
-                executed: [$set, true],
-                'model.appInternalState.counterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
-            });
+        if (!result) return appState;
 
-        case COUNTER_CTRL_INCREMENT:
-            const newValue = appState.model.data.counter + appState.model.appInternalState.counterComponent.incrementBy;
-            return update(appState, {
-                nextMsg: [$set, {
+        const updates = {
+            executed: [$set, true],
+            nextMsg: [$set, result.nextMsg]
+        };
+
+        if (result.internalStateUpdate) {
+            updates[`model.appInternalState.${statePath}`] = [$set, {
+                ...internalState,
+                ...result.internalStateUpdate
+            }];
+        }
+
+        return update(appState, updates);
+    };
+};
+
+const handleCounter = (setIncrementByAction, incrementAction) => (internalState, action) => {
+    switch(action.type) {
+        case setIncrementByAction:
+            return {
+                internalStateUpdate: {
+                    incrementBy: parseInt(action.payload)
+                },
+                nextMsg: null
+            };
+
+        case incrementAction:
+            return {
+                internalStateUpdate: null,
+                nextMsg: {
                     type: COUNTER_MODEL_INCREMENT,
-                    payload: newValue
-                }],
-                executed: [$set, true]
-            });
+                    payload: internalState.incrementBy
+                }
+            };
             
         default:
-            return appState;
+            return null;
     }
-}
+};
 
-export const anotherCounterControllerStateUpdate = (appState) => {
-    if (!appState.msg) return appState;
+export const counterControllerStateUpdate = createController(
+    handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT),
+    'counterComponent'
+);
 
-    switch(appState.msg.type) {
-        case ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY:
-            return update(appState, {
-                nextMsg: [$set, null],
-                executed: [$set, true],
-                'model.appInternalState.anotherCounterComponent.incrementBy': [$set, parseInt(appState.msg.payload)]
-            });
-
-        case ANOTHER_COUNTER_CTRL_INCREMENT:
-            const newValue = appState.model.data.counter + appState.model.appInternalState.anotherCounterComponent.incrementBy;
-            return update(appState, {
-                nextMsg: [$set, {
-                    type: COUNTER_MODEL_INCREMENT,
-                    payload: newValue
-                }],
-                executed: [$set, true]
-            });
-            
-        default:
-            return appState;
-    }
-}
+export const anotherCounterControllerStateUpdate = createController(
+    handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT),
+    'anotherCounterComponent'
+);

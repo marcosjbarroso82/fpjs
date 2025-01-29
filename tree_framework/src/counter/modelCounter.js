@@ -19,8 +19,9 @@ export const counterModelStateUpdate = (appState) => {
     
     switch(appState.msg.type) {
         case COUNTER_MODEL_INCREMENT:
+            const newValue = appState.model.data.counter + appState.msg.payload;
             return update(appState, {
-                'model.data.counter': [$set, appState.msg.payload],
+                'model.data.counter': [$set, newValue],
                 msg: [$set, null],
                 nextMsg: [$set, null],
                 executed: [$set, true]
