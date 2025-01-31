@@ -5,11 +5,18 @@ import {
 
 import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT } from './constantsCounter';
 
+const STATE_PATH = {
+    COUNTER: 'model.appInternalState.counterComponent',
+    ANOTHER_COUNTER: 'model.appInternalState.anotherCounterComponent',
+    INDEPENDENT_COUNTER: 'model.appInternalState.independentCounterComponent'
+};
+
 const createController = (handler, statePath) => {
     return (appState) => {
         if (!appState.msg) return appState;
 
-        const internalState = appState.model.appInternalState[statePath];
+        const pathParts = statePath.split('.');
+        const internalState = pathParts.reduce((obj, part) => obj[part], appState);
         const result = handler(internalState, appState.msg);
 
         if (!result) return appState;
@@ -20,7 +27,7 @@ const createController = (handler, statePath) => {
         };
 
         if (result.internalStateUpdate) {
-            updates[`model.appInternalState.${statePath}`] = [$set, {
+            updates[statePath] = [$set, {
                 ...internalState,
                 ...result.internalStateUpdate
             }];
@@ -56,16 +63,16 @@ const handleCounter = (setIncrementByAction, incrementAction, modelIncrementActi
 
 export const counterControllerStateUpdate = createController(
     handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    'counterComponent' // TODO: use constant for this appInternalState
+    STATE_PATH.COUNTER
 );
 
 export const anotherCounterControllerStateUpdate = createController(
     handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    'anotherCounterComponent'
+    STATE_PATH.ANOTHER_COUNTER
 );
 
 export const independentCounterControllerStateUpdate = createController(
     handleCounter(INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT),
-    'independentCounterComponent'
+    STATE_PATH.INDEPENDENT_COUNTER
 );
 
