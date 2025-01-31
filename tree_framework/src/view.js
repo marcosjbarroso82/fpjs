@@ -1,9 +1,12 @@
 import { EXECUTE_NEXT_MSG } from './constants';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
-import { renderAnotherCounterForm, renderCounterForm } from './counter/renderCounter';
+import { renderAnotherCounterForm, renderCounterForm, renderIndependentCounterForm } from './counter/renderCounter';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
+
+
+// TODO: Mode renderDebug to its own file.
 export function renderDebug(dispatch, appState) {
     return div({}, [
         h2('Debug'),
@@ -35,6 +38,7 @@ export function view(dispatch, appState) {
     return div({}, [
         renderCounterForm(dispatch, appState),
         renderAnotherCounterForm(dispatch, appState),
+        renderIndependentCounterForm(dispatch, appState),
 
         renderDebug(dispatch, appState),
     ]);

@@ -15,8 +15,8 @@ import {
   } from "immhelper";
 import { EXECUTE_NEXT_MSG } from './constants';
 import { view } from './view';
-import { counterViewStateUpdate, anotherCounterViewStateUpdate } from './counter/viewCounter';
-import { counterControllerStateUpdate, anotherCounterControllerStateUpdate } from './counter/controllerCounter';
+import { counterViewStateUpdate, anotherCounterViewStateUpdate, independentCounterViewStateUpdate } from './counter/viewCounter';
+import { counterControllerStateUpdate, anotherCounterControllerStateUpdate, independentCounterControllerStateUpdate } from './counter/controllerCounter';
 import { counterModelStateUpdate } from './counter/modelCounter';
 
 function pipeExecuter(pipe, appState) {
@@ -32,12 +32,14 @@ function pipeExecuter(pipe, appState) {
 
 const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
-    anotherCounterControllerStateUpdate
+    anotherCounterControllerStateUpdate,
+    independentCounterControllerStateUpdate
 ]
 
 const VIEW_PIPE = [
     counterViewStateUpdate,
-    anotherCounterViewStateUpdate
+    anotherCounterViewStateUpdate,
+    independentCounterViewStateUpdate
 ]
 
 const MODEL_PIPE = [
@@ -81,7 +83,8 @@ function app(node) {
       "model": {
         "debug_msg": "initialData",
         "data": {
-          "counter": 5
+          "counter": 5,
+          "independentCounter": 55
         },
         "appInternalState": {
           "counterComponent": {
@@ -89,13 +92,16 @@ function app(node) {
           },
           "anotherCounterComponent": {
             "incrementBy": 3
+          },
+          "independentCounterComponent": {
+            "incrementBy": 11
           }
         },
         "output": {
           "counter": 5,
           "incrementBy": 2,
           "anotherIncrementBy": 3,
-          "counterViewStateUpdateDebugTimeStamp": "2025-01-28T15:45:39.717Z"
+          "counterViewStateUpdateDebugTimeStamp": "2025-01-28T15:45:39.717Z",
         }
       },
       "msg": {},

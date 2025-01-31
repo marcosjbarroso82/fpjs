@@ -1,4 +1,4 @@
-import { COUNTER_MODEL_INCREMENT } from './constantsCounter';
+import { COUNTER_MODEL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT } from './constantsCounter';
 
 import {
     update,
@@ -19,9 +19,17 @@ export const counterModelStateUpdate = (appState) => {
     
     switch(appState.msg.type) {
         case COUNTER_MODEL_INCREMENT:
-            const newValue = appState.model.data.counter + appState.msg.payload;
+            let newValue = appState.model.data.counter + appState.msg.payload;
             return update(appState, {
                 'model.data.counter': [$set, newValue],
+                msg: [$set, null],
+                nextMsg: [$set, null],
+                executed: [$set, true]
+            });
+        case INDEPENDENT_COUNTER_MODEL_INCREMENT:
+            let independentCounterValue = appState.model.data.independentCounter + appState.msg.payload;
+            return update(appState, {
+                'model.data.independentCounter': [$set, independentCounterValue],
                 msg: [$set, null],
                 nextMsg: [$set, null],
                 executed: [$set, true]

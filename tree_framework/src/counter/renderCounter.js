@@ -1,4 +1,4 @@
-import { COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY } from './constantsCounter';
+import { COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT } from './constantsCounter';
 
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
@@ -36,3 +36,18 @@ export function renderAnotherCounterForm(dispatch, appState) {
     ]);
 }
 
+export function renderIndependentCounterForm(dispatch, appState) {
+    return div({}, [
+        label({}, 'Independent Counter: '),
+        label({}, appState.model.output.independentCounter),
+        br(),
+        label({}, 'Increment By: '),
+        label({}, appState.model.output.independentCounterIncrementBy),
+        input({
+            type: 'number',
+            value: appState.model.output.independentCounterIncrementBy,
+            oninput: (e) => dispatch({ type: INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, payload: e.target.value })
+        }, 'Increment By: '),
+        button({ onclick: () => dispatch({ type: INDEPENDENT_COUNTER_CTRL_INCREMENT }) }, 'Increment'),
+    ]);
+}

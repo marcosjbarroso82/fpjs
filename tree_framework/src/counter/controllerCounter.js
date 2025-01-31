@@ -3,7 +3,7 @@ import {
     $set,
   } from "immhelper";
 
-import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY } from './constantsCounter';
+import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT } from './constantsCounter';
 
 const createController = (handler, statePath) => {
     return (appState) => {
@@ -30,7 +30,7 @@ const createController = (handler, statePath) => {
     };
 };
 
-const handleCounter = (setIncrementByAction, incrementAction) => (internalState, action) => {
+const handleCounter = (setIncrementByAction, incrementAction, modelIncrementAction) => (internalState, action) => {
     switch(action.type) {
         case setIncrementByAction:
             return {
@@ -44,7 +44,7 @@ const handleCounter = (setIncrementByAction, incrementAction) => (internalState,
             return {
                 internalStateUpdate: null,
                 nextMsg: {
-                    type: COUNTER_MODEL_INCREMENT,
+                    type: modelIncrementAction,
                     payload: internalState.incrementBy
                 }
             };
@@ -55,11 +55,17 @@ const handleCounter = (setIncrementByAction, incrementAction) => (internalState,
 };
 
 export const counterControllerStateUpdate = createController(
-    handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT),
-    'counterComponent'
+    handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
+    'counterComponent' // TODO: use constant for this appInternalState
 );
 
 export const anotherCounterControllerStateUpdate = createController(
-    handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT),
+    handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
     'anotherCounterComponent'
 );
+
+export const independentCounterControllerStateUpdate = createController(
+    handleCounter(INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT),
+    'independentCounterComponent'
+);
+
