@@ -14,10 +14,13 @@ import {
     $filter
   } from "immhelper";
 import { EXECUTE_NEXT_MSG } from './constants';
-import { view } from './view';
+import { view } from './render';
 import { counterViewStateUpdate, anotherCounterViewStateUpdate, independentCounterViewStateUpdate } from './counter/viewCounter';
 import { counterControllerStateUpdate, anotherCounterControllerStateUpdate, independentCounterControllerStateUpdate } from './counter/controllerCounter';
 import { counterModelStateUpdate } from './counter/modelCounter';
+import { accumulatorModelStateUpdate } from './accumulator/modelAccumulator';
+import { accumulatorControllerStateUpdate } from './accumulator/controllerAccumulator';
+import { accumulatorViewStateUpdate } from './accumulator/viewAccumulator';
 
 function pipeExecuter(pipe, appState) {
     return pipe.reduce((acc, update) => {
@@ -33,18 +36,22 @@ function pipeExecuter(pipe, appState) {
 const CONTROLLER_PIPE = [
     counterControllerStateUpdate,
     anotherCounterControllerStateUpdate,
-    independentCounterControllerStateUpdate
+    independentCounterControllerStateUpdate,
+    accumulatorControllerStateUpdate
 ]
 
 const VIEW_PIPE = [
     counterViewStateUpdate,
     anotherCounterViewStateUpdate,
-    independentCounterViewStateUpdate
+    independentCounterViewStateUpdate,
+    accumulatorViewStateUpdate
 ]
 
 const MODEL_PIPE = [
-    counterModelStateUpdate
+    counterModelStateUpdate,
+    accumulatorModelStateUpdate
 ]
+
 
 // App
 const appStateUpdate = (appState) => {
@@ -83,13 +90,20 @@ function app(node) {
       "model": {
         "debug_msg": "initialData",
         "data": {
+          "accumulator": 7,
           "counter": 5,
           "independentCounter": 55
         },
         "appInternalState": {
+          "accumulatorComponent": {
+            "accumulator": 7,
+            "incrementBy": 1
+          },
           "counterComponent": {
             "incrementBy": 2
           },
+
+
           "anotherCounterComponent": {
             "incrementBy": 3
           },
@@ -98,11 +112,14 @@ function app(node) {
           }
         },
         "output": {
+          "accumulator": 7,
+          "accumulatorIncrementBy": 1,
           "counter": 5,
           "incrementBy": 2,
           "anotherIncrementBy": 3,
           "counterViewStateUpdateDebugTimeStamp": "2025-01-28T15:45:39.717Z",
         }
+
       },
       "msg": {},
       "nextMsg": {

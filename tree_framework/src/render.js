@@ -2,6 +2,7 @@ import { EXECUTE_NEXT_MSG } from './constants';
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
 import { renderAnotherCounterForm, renderCounterForm, renderIndependentCounterForm } from './counter/renderCounter';
+import { renderAccumulatorForm } from './accumulator/renderAccumulator';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
 
@@ -18,6 +19,7 @@ export function renderDebug(dispatch, appState) {
         p('To be implemented'),
         ul(
             [
+                li('Crea un acumulador. Este acumulador solo recibe un estado y devuelve un estado con un mensaje. la HOF sabe traducir ese mensaje a un siguiente mensaje en el estado global. Tambien es la que sabe guardar el estado parcial en el esado global. deberia guarda el estado la HOF o deberia enviar un mensaje para que lo haga un modelo? Crear dentro de la vista controladores que permitan enviar mensajes a voluntad para crear una HOF generica y debugear. El acumulador cuando envia el valor que estuvo acumuladondo, tambien lo reinicia. Deberia reiniciarlo la vista, la HOC o el controlador? '),
                 li('Independent Counter'),
                 li('Profile'),
                 li('Duplicated Profile'),
@@ -36,6 +38,7 @@ export function renderDebug(dispatch, appState) {
 }// Renders
 export function view(dispatch, appState) {
     return div({}, [
+        renderAccumulatorForm(dispatch, appState),
         renderCounterForm(dispatch, appState),
         renderAnotherCounterForm(dispatch, appState),
         renderIndependentCounterForm(dispatch, appState),
