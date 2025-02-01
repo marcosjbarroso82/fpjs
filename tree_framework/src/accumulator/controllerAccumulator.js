@@ -1,4 +1,5 @@
 import { update, $set } from "immhelper";
+import { path } from 'ramda';
 import { 
     ACCUMULATOR_CONTROLLER_SET_INCREMENT_BY, 
     ACCUMULATOR_MODEL_INCREMENT, 
@@ -57,12 +58,7 @@ const coreAccumulatorController = (ctrlState, msg) => {
     };
 }
 
-
-const PATH = {
-    INCREMENT_BY: 'model.appInternalState.accumulatorComponent.incrementBy',
-    ACCUMULATOR: 'model.appInternalState.accumulatorComponent.accumulator'
-};
-
+const CONTROLLER_STATE_PATH = 'model.appInternalState.accumulatorComponent';
 
 export const accumulatorControllerStateUpdate = (appState) => {
     if (!appState.msg) return appState;
@@ -83,19 +79,16 @@ export const accumulatorControllerStateUpdate = (appState) => {
             return appState;
     }
 
-    // Get current controller state
-    const currentCtrlState = {
-        incrementBy: appState.model.appInternalState.accumulatorComponent.incrementBy,
-        accumulator: appState.model.appInternalState.accumulatorComponent.accumulator
-    };
+    // Get current controller state using path
+    const pathSegments = CONTROLLER_STATE_PATH.split('.');
+    const currentCtrlState = path(pathSegments, appState);
 
     // Call core controller
     const { newCtrlState, returnMsg } = coreAccumulatorController(currentCtrlState, coreMsg);
 
     // Map core controller results back to app state
     let updateObj = {
-        [PATH.INCREMENT_BY]: [$set, newCtrlState.incrementBy],
-        [PATH.ACCUMULATOR]: [$set, newCtrlState.accumulator],
+        [CONTROLLER_STATE_PATH]: [$set, newCtrlState],
         executed: [$set, true],
         nextMsg: [$set, null]
     };
