@@ -4,9 +4,10 @@ import {
     ACCUMULATOR_CONTROLLER_SET_INCREMENT_BY, 
     ACCUMULATOR_MODEL_INCREMENT, 
     ACCUMULATOR_CONTROLLER_INCREMENT, 
-    ACCUMULATOR_CONTROLLER_DUMP 
+    ACCUMULATOR_CONTROLLER_DUMP, 
+    ACCUMULATOR_CONTROLLER_STATE_PATH,
+    ACCUMULATOR_CONTROLLER_STATE_PATH_SEGMENTS
 } from './constantsAccumulator';
-import { APP_STATE_PATH } from '../constants';
 
 const CORE_MSGS = {
     SET_INCREMENT_BY: 'SET_INCREMENT_BY',
@@ -18,9 +19,9 @@ const CORE_RETURN_MSGS = {
     CONTEXT_SET_ACCUMULATOR: 'CONTEXT_SET_ACCUMULATOR',
 }
 
-
 const coreAccumulatorController = (ctrlState, msg) => {
     if (!msg?.type) return { newCtrlState: ctrlState, returnMsg: null };
+
 
     const { incrementBy, accumulator } = ctrlState;
     let newCtrlState = ctrlState;
@@ -59,9 +60,6 @@ const coreAccumulatorController = (ctrlState, msg) => {
     };
 }
 
-const CONTROLLER_STATE_PATH = `${APP_STATE_PATH}.accumulatorComponent`;
-
-
 export const accumulatorControllerStateUpdate = (appState) => {
     if (!appState?.msg) return appState;
 
@@ -82,15 +80,15 @@ export const accumulatorControllerStateUpdate = (appState) => {
     }
 
     // Get current controller state using path
-    const pathSegments = CONTROLLER_STATE_PATH.split('.');
-    const currentCtrlState = path(pathSegments, appState);
+    const currentCtrlState = path(ACCUMULATOR_CONTROLLER_STATE_PATH_SEGMENTS, appState);
+
 
     // Call core controller
     const { newCtrlState, returnMsg } = coreAccumulatorController(currentCtrlState, coreMsg);
 
     // Map core controller results back to app state
     let updateObj = {
-        [CONTROLLER_STATE_PATH]: [$set, newCtrlState],
+        [ACCUMULATOR_CONTROLLER_STATE_PATH]: [$set, newCtrlState],
         executed: [$set, true],
         nextMsg: [$set, null]
     };
