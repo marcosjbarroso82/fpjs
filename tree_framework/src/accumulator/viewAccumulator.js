@@ -12,13 +12,13 @@ import {
   } from "immhelper";   
 import { APP_OUTPUT_PATH } from '../constants';
 import { path } from 'ramda';
-import { ACCUMULATOR_VALUE_DATA_PATH_SEGMENTS, COMPONENT_ACCUMULATOR_INCREMENT_BY_DATA_PATH_SEGMENTS, COMPONENT_ACCUMULATOR_PATH } from "./constantsAccumulator";
+import { ACC_VALUE_DATA_PATH_SEGMENTS, ACC_CTRL_ACC_INC_BY_DATA_PATH_SEGMENTS, ACC_CTRL_ACC_PATH_SEGMENTS } from "./constantsAccumulator";
 
 const accumulatorViewStateUpdate = (appState) => {
 
-    const globalAccumulator = path(ACCUMULATOR_VALUE_DATA_PATH_SEGMENTS, appState);
-    const accumulator = path(COMPONENT_ACCUMULATOR_PATH.split('.'), appState);
-    const accumulatorIncrementBy = path(COMPONENT_ACCUMULATOR_INCREMENT_BY_DATA_PATH_SEGMENTS, appState);
+    const globalAccumulator = path(ACC_VALUE_DATA_PATH_SEGMENTS, appState);
+    const accumulator = path(ACC_CTRL_ACC_PATH_SEGMENTS, appState);
+    const accumulatorIncrementBy = path(ACC_CTRL_ACC_INC_BY_DATA_PATH_SEGMENTS, appState);
 
     return update(appState, {
         [APP_OUTPUT_PATH]: [$assign, {

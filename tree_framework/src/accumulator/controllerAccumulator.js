@@ -1,12 +1,13 @@
 import { update, $set } from "immhelper";
 import { path } from 'ramda';
 import { 
-    ACCUMULATOR_CONTROLLER_SET_INCREMENT_BY, 
-    ACCUMULATOR_MODEL_INCREMENT, 
-    ACCUMULATOR_CONTROLLER_INCREMENT, 
-    ACCUMULATOR_CONTROLLER_DUMP, 
-    ACCUMULATOR_CONTROLLER_STATE_PATH,
-    ACCUMULATOR_CONTROLLER_STATE_PATH_SEGMENTS
+    ACC_CTRL_SET_INC_BY, 
+    ACC_MODEL_INC, 
+    ACC_CTRL_INC, 
+    ACC_CTRL_DUMP, 
+    ACC_CTRL_STATE_PATH,
+    ACC_CTRL_STATE_PATH_SEGMENTS
+
 } from './constantsAccumulator';
 
 const CORE_MSGS = {
@@ -34,7 +35,7 @@ const coreAccumulatorController = (ctrlState, msg) => {
                 incrementBy: parseInt(msg.payload)
             }
             break;
-
+        
         case CORE_MSGS.INCREMENT:
             newCtrlState = {
                 ...newCtrlState,
@@ -66,13 +67,14 @@ export const accumulatorControllerStateUpdate = (appState) => {
     // Map app messages to core messages
     let coreMsg = null;
     switch (appState.msg.type) {
-        case ACCUMULATOR_CONTROLLER_SET_INCREMENT_BY:
+        case ACC_CTRL_SET_INC_BY:
             coreMsg = { type: CORE_MSGS.SET_INCREMENT_BY, payload: appState.msg.payload };
             break;
-        case ACCUMULATOR_CONTROLLER_INCREMENT:
+        case ACC_CTRL_INC:
             coreMsg = { type: CORE_MSGS.INCREMENT };
             break;
-        case ACCUMULATOR_CONTROLLER_DUMP:
+        case ACC_CTRL_DUMP:
+
             coreMsg = { type: CORE_MSGS.DUMP };
             break;
         default:
@@ -80,7 +82,7 @@ export const accumulatorControllerStateUpdate = (appState) => {
     }
 
     // Get current controller state using path
-    const currentCtrlState = path(ACCUMULATOR_CONTROLLER_STATE_PATH_SEGMENTS, appState);
+    const currentCtrlState = path(ACC_CTRL_STATE_PATH_SEGMENTS, appState);
 
 
     // Call core controller
@@ -88,7 +90,7 @@ export const accumulatorControllerStateUpdate = (appState) => {
 
     // Map core controller results back to app state
     let updateObj = {
-        [ACCUMULATOR_CONTROLLER_STATE_PATH]: [$set, newCtrlState],
+        [ACC_CTRL_STATE_PATH]: [$set, newCtrlState],
         executed: [$set, true],
         nextMsg: [$set, null]
     };
@@ -96,7 +98,7 @@ export const accumulatorControllerStateUpdate = (appState) => {
     // Map return message if exists
     if (returnMsg?.type === CORE_RETURN_MSGS.CONTEXT_SET_ACCUMULATOR) {
         updateObj.nextMsg = [$set, {
-            type: ACCUMULATOR_MODEL_INCREMENT,
+            type: ACC_MODEL_INC,
             payload: returnMsg.payload
         }];
     }
