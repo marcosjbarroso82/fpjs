@@ -13,14 +13,15 @@ const CORE_MSGS = {
     DUMP: 'DUMP'
 }
 
-const CORE_RETRUN_MSGS = {
+const CORE_RETURN_MSGS = {
     CONTEXT_SET_ACCUMULATOR: 'CONTEXT_SET_ACCUMULATOR',
 }
 
 
 const coreAccumulatorController = (ctrlState, msg) => {
-    if (!msg.type) return ctrlState;
+    if (!msg?.type) return { newCtrlState: ctrlState, returnMsg: null };
 
+    const { incrementBy, accumulator } = ctrlState;
     let newCtrlState = ctrlState;
     let returnMsg = null;
 
@@ -35,19 +36,18 @@ const coreAccumulatorController = (ctrlState, msg) => {
         case CORE_MSGS.INCREMENT:
             newCtrlState = {
                 ...newCtrlState,
-                accumulator: newCtrlState.accumulator + newCtrlState.incrementBy
+                accumulator: accumulator + incrementBy
             }
             break;
 
         case CORE_MSGS.DUMP:
-            const currentAccumulator = newCtrlState.accumulator;
+            returnMsg = {
+                type: CORE_RETURN_MSGS.CONTEXT_SET_ACCUMULATOR,    
+                payload: accumulator
+            }
             newCtrlState = {
                 ...newCtrlState,
                 accumulator: 0
-            }
-            returnMsg = {
-                type: CORE_RETRUN_MSGS.CONTEXT_SET_ACCUMULATOR,    
-                payload: currentAccumulator
             }
             break;
     }
@@ -61,7 +61,7 @@ const coreAccumulatorController = (ctrlState, msg) => {
 const CONTROLLER_STATE_PATH = 'model.appInternalState.accumulatorComponent';
 
 export const accumulatorControllerStateUpdate = (appState) => {
-    if (!appState.msg) return appState;
+    if (!appState?.msg) return appState;
 
     // Map app messages to core messages
     let coreMsg = null;
@@ -94,7 +94,7 @@ export const accumulatorControllerStateUpdate = (appState) => {
     };
 
     // Map return message if exists
-    if (returnMsg && returnMsg.type === CORE_RETRUN_MSGS.CONTEXT_SET_ACCUMULATOR) {
+    if (returnMsg?.type === CORE_RETURN_MSGS.CONTEXT_SET_ACCUMULATOR) {
         updateObj.nextMsg = [$set, {
             type: ACCUMULATOR_MODEL_INCREMENT,
             payload: returnMsg.payload
