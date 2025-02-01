@@ -21,10 +21,10 @@ export const APP_OUTPUT_PATH_SEGMENTS_ACC = APP_OUTPUT_PATH_SEGMENTS.concat('acc
 export const APP_OUTPUT_PATH_SEGMENTS_ACC_INC_BY = APP_OUTPUT_PATH_SEGMENTS.concat('accumulatorIncrementBy');
 
 // Model Msgs
-export const ACC_MODEL_INC = 'ACC_MODEL_INC';
-export const ACC_MODEL_INIT = 'ACC_MODEL_INIT';
+export const ACC_MODEL_INC_MSG = 'ACC_MODEL_INC';
+export const ACC_MODEL_INIT_MSG = 'ACC_MODEL_INIT';
 
 // Controller Msgs
-export const ACC_CTRL_INC = 'ACC_CTRL_INC';
-export const ACC_CTRL_SET_INC_BY = 'ACC_CTRL_SET_INC_BY';
-export const ACC_CTRL_DUMP = 'ACC_CTRL_DUMP';
+export const ACC_CTRL_INC_MSG = 'ACC_CTRL_INC';
+export const ACC_CTRL_SET_INC_BY_MSG = 'ACC_CTRL_SET_INC_BY';
+export const ACC_CTRL_DUMP_MSG = 'ACC_CTRL_DUMP';

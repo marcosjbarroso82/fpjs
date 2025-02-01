@@ -1,10 +1,10 @@
 import { update, $set } from "immhelper";
 import { path } from 'ramda';
 import { 
-    ACC_CTRL_SET_INC_BY, 
-    ACC_MODEL_INC, 
-    ACC_CTRL_INC, 
-    ACC_CTRL_DUMP, 
+    ACC_CTRL_SET_INC_BY_MSG, 
+    ACC_MODEL_INC_MSG, 
+    ACC_CTRL_INC_MSG, 
+    ACC_CTRL_DUMP_MSG, 
     ACC_CTRL_STATE_PATH,
     ACC_CTRL_STATE_PATH_SEGMENTS
 
@@ -67,13 +67,13 @@ export const accumulatorControllerStateUpdate = (appState) => {
     // Map app messages to core messages
     let coreMsg = null;
     switch (appState.msg.type) {
-        case ACC_CTRL_SET_INC_BY:
+        case ACC_CTRL_SET_INC_BY_MSG:
             coreMsg = { type: CORE_MSGS.SET_INCREMENT_BY, payload: appState.msg.payload };
             break;
-        case ACC_CTRL_INC:
+        case ACC_CTRL_INC_MSG:
             coreMsg = { type: CORE_MSGS.INCREMENT };
             break;
-        case ACC_CTRL_DUMP:
+        case ACC_CTRL_DUMP_MSG:
 
             coreMsg = { type: CORE_MSGS.DUMP };
             break;
@@ -98,7 +98,7 @@ export const accumulatorControllerStateUpdate = (appState) => {
     // Map return message if exists
     if (returnMsg?.type === CORE_RETURN_MSGS.CONTEXT_SET_ACCUMULATOR) {
         updateObj.nextMsg = [$set, {
-            type: ACC_MODEL_INC,
+            type: ACC_MODEL_INC_MSG,
             payload: returnMsg.payload
         }];
     }
