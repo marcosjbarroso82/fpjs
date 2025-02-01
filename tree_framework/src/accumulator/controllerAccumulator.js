@@ -6,6 +6,7 @@ import {
     ACCUMULATOR_CONTROLLER_INCREMENT, 
     ACCUMULATOR_CONTROLLER_DUMP 
 } from './constantsAccumulator';
+import { APP_STATE_PATH } from '../constants';
 
 const CORE_MSGS = {
     SET_INCREMENT_BY: 'SET_INCREMENT_BY',
@@ -58,7 +59,8 @@ const coreAccumulatorController = (ctrlState, msg) => {
     };
 }
 
-const CONTROLLER_STATE_PATH = 'model.appInternalState.accumulatorComponent';
+const CONTROLLER_STATE_PATH = `${APP_STATE_PATH}.accumulatorComponent`;
+
 
 export const accumulatorControllerStateUpdate = (appState) => {
     if (!appState?.msg) return appState;
