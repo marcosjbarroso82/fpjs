@@ -10,23 +10,25 @@ import {
     $remove,
     $filter
   } from "immhelper";   
-import { APP_OUTPUT_PATH, APP_DATA_PATH, APP_STATE_PATH } from '../constants';
+import { APP_OUTPUT_PATH } from '../constants';
 import { path } from 'ramda';
-
-const COMPONENT_STATE_PATH = APP_STATE_PATH + '.accumulatorComponent';
+import { ACCUMULATOR_VALUE_DATA_PATH_SEGMENTS, COMPONENT_ACCUMULATOR_INCREMENT_BY_DATA_PATH_SEGMENTS, COMPONENT_ACCUMULATOR_PATH } from "./constantsAccumulator";
 
 const accumulatorViewStateUpdate = (appState) => {
-    const GLOBAL_ACCUMULATOR_PATH = APP_DATA_PATH + '.accumulator';
-    const COMPONENT_ACCUMULATOR_PATH = COMPONENT_STATE_PATH + '.accumulator';
-    const COMPONENT_ACCUMULATOR_INCREMENT_BY_PATH = COMPONENT_STATE_PATH + '.incrementBy';
+
+    const globalAccumulator = path(ACCUMULATOR_VALUE_DATA_PATH_SEGMENTS, appState);
+    const accumulator = path(COMPONENT_ACCUMULATOR_PATH.split('.'), appState);
+    const accumulatorIncrementBy = path(COMPONENT_ACCUMULATOR_INCREMENT_BY_DATA_PATH_SEGMENTS, appState);
 
     return update(appState, {
         [APP_OUTPUT_PATH]: [$assign, {
-            globalAccumulator: path(GLOBAL_ACCUMULATOR_PATH.split('.'), appState),
-            accumulator: path(COMPONENT_ACCUMULATOR_PATH.split('.'), appState), 
-            accumulatorIncrementBy: path(COMPONENT_ACCUMULATOR_INCREMENT_BY_PATH.split('.'), appState)
+            globalAccumulator,
+            accumulator, 
+            accumulatorIncrementBy
         }]
+
     });
+
 }
 
 export { accumulatorViewStateUpdate };
