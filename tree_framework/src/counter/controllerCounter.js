@@ -1,15 +1,21 @@
 import {
     update,
     $set,
-  } from "immhelper";
+} from "immhelper";
 
-import { COUNTER_CTRL_INCREMENT, COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_MODEL_INCREMENT, ANOTHER_COUNTER_CTRL_INCREMENT, ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT } from './constantsCounter';
-
-const STATE_PATH = {
-    COUNTER: 'model.appInternalState.counterComponent',
-    ANOTHER_COUNTER: 'model.appInternalState.anotherCounterComponent',
-    INDEPENDENT_COUNTER: 'model.appInternalState.independentCounterComponent'
-};
+import {
+    COUNTER_CTRL_INCREMENT,
+    COUNTER_CTRL_SET_INCREMENT_BY,
+    COUNTER_MODEL_INCREMENT,
+    ANOTHER_COUNTER_CTRL_INCREMENT,
+    ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY,
+    INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY,
+    INDEPENDENT_COUNTER_CTRL_INCREMENT,
+    INDEPENDENT_COUNTER_MODEL_INCREMENT,
+    COUNTER_CTRL_STATE_PATH,
+    ANOTHER_COUNTER_CTRL_STATE_PATH,
+    INDEPENDENT_COUNTER_CTRL_STATE_PATH
+} from './constantsCounter';
 
 const createController = (handler, statePath) => {
     return (appState) => {
@@ -63,16 +69,16 @@ const handleCounter = (setIncrementByAction, incrementAction, modelIncrementActi
 
 export const counterControllerStateUpdate = createController(
     handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    STATE_PATH.COUNTER
+    COUNTER_CTRL_STATE_PATH
 );
 
 export const anotherCounterControllerStateUpdate = createController(
     handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    STATE_PATH.ANOTHER_COUNTER
+    ANOTHER_COUNTER_CTRL_STATE_PATH
 );
 
 export const independentCounterControllerStateUpdate = createController(
     handleCounter(INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT),
-    STATE_PATH.INDEPENDENT_COUNTER
+    INDEPENDENT_COUNTER_CTRL_STATE_PATH
 );
 

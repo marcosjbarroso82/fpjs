@@ -1,14 +1,18 @@
-import { COUNTER_MODEL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT } from './constantsCounter';
+import { update, $set } from 'immhelper';
+import { 
+    COUNTER_MODEL_INCREMENT, 
+    INDEPENDENT_COUNTER_MODEL_INCREMENT,
+    COUNTER_DATA_PATH,
+    INDEPENDENT_COUNTER_DATA_PATH
+} from './constantsCounter';
 
 import {
-    update,
     $push,
     $unshift,
     $splice,
     $assign,
     $toggle,
     $unset,
-    $set,
     $remove,
     $filter
   } from "immhelper";
@@ -19,17 +23,15 @@ export const counterModelStateUpdate = (appState) => {
     
     switch(appState.msg.type) {
         case COUNTER_MODEL_INCREMENT:
-            let newValue = appState.model.data.counter + appState.msg.payload;
             return update(appState, {
-                'model.data.counter': [$set, newValue],
+                [COUNTER_DATA_PATH]: [x => x + appState.msg.payload],
                 msg: [$set, null],
                 nextMsg: [$set, null],
                 executed: [$set, true]
             });
         case INDEPENDENT_COUNTER_MODEL_INCREMENT:
-            let independentCounterValue = appState.model.data.independentCounter + appState.msg.payload;
             return update(appState, {
-                'model.data.independentCounter': [$set, independentCounterValue],
+                [INDEPENDENT_COUNTER_DATA_PATH]: [x => x + appState.msg.payload],
                 msg: [$set, null],
                 nextMsg: [$set, null],
                 executed: [$set, true]
