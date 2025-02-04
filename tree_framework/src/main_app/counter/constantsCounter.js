@@ -1,4 +1,4 @@
-import { APP_DATA_PATH, APP_STATE_PATH, APP_OUTPUT_PATH_SEGMENTS } from '../constants';
+import { APP_DATA_PATH, APP_STATE_PATH, APP_OUTPUT_PATH_SEGMENTS } from '../../constants';
 // Constants
 const INIT_MSG = 'INIT_MSG';
 export const COUNTER_CTRL_SET_INCREMENT_BY = 'COUNTER_CTRL_SET_INCREMENT_BY';

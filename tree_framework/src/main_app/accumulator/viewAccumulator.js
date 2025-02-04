@@ -10,7 +10,7 @@ import {
     $remove,
     $filter
   } from "immhelper";   
-import { APP_OUTPUT_PATH } from '../constants';
+import { APP_OUTPUT_PATH } from '../../constants';
 import { path } from 'ramda';
 import { ACC_VALUE_DATA_PATH_SEGMENTS, ACC_CTRL_ACC_INC_BY_DATA_PATH_SEGMENTS, ACC_CTRL_ACC_PATH_SEGMENTS } from "./constantsAccumulator";
 

@@ -14,44 +14,9 @@ import {
     $filter
   } from "immhelper";
 import { EXECUTE_NEXT_MSG } from './constants';
-import { view } from './render';
-import { counterViewStateUpdate, anotherCounterViewStateUpdate, independentCounterViewStateUpdate } from './counter/viewCounter';
-import { counterControllerStateUpdate, anotherCounterControllerStateUpdate, independentCounterControllerStateUpdate } from './counter/controllerCounter';
-import { counterModelStateUpdate } from './counter/modelCounter';
-import { accumulatorModelStateUpdate } from './accumulator/modelAccumulator';
-import { accumulatorControllerStateUpdate } from './accumulator/controllerAccumulator';
-import { accumulatorViewStateUpdate } from './accumulator/viewAccumulator';
-
-function pipeExecuter(pipe, appState) {
-    return pipe.reduce((acc, update) => {
-        // If the update is an array, recursively process it as a nested pipe
-        if (Array.isArray(update)) {
-            return pipeExecuter(update, acc);
-        }
-        // Otherwise, execute the update function normally
-        return update(acc);
-    }, appState);
-}
-
-const CONTROLLER_PIPE = [
-    counterControllerStateUpdate,
-    anotherCounterControllerStateUpdate,
-    independentCounterControllerStateUpdate,
-    accumulatorControllerStateUpdate
-]
-
-const VIEW_PIPE = [
-    counterViewStateUpdate,
-    anotherCounterViewStateUpdate,
-    independentCounterViewStateUpdate,
-    accumulatorViewStateUpdate
-]
-
-const MODEL_PIPE = [
-    counterModelStateUpdate,
-    accumulatorModelStateUpdate
-]
-
+import { view } from './main_app/render';
+import { pipeExecuter } from './pipeExecuter';
+import { MODEL_PIPE, VIEW_PIPE, CONTROLLER_PIPE } from './main_app/pipes';
 
 // App
 const appStateUpdate = (appState) => {
