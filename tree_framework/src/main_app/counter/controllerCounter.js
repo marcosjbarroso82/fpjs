@@ -5,6 +5,9 @@ import {
 import { path } from 'ramda';
 
 import {
+    BASE_COUNTER_CTRL_SET_INCREMENT_BY,
+    BASE_COUNTER_CTRL_INCREMENT,
+    BASE_COUNTER_MODEL_INCREMENT,
     COUNTER_CTRL_INCREMENT,
     COUNTER_CTRL_SET_INCREMENT_BY,
     COUNTER_MODEL_INCREMENT,
@@ -19,23 +22,35 @@ import {
 
 } from './constantsCounter';
 
-const createController = (handler, statePathSegments) => {
+const createController = (handler, statePathSegments, { inMapping, outMapping }) => {
     return (appState) => {
         if (!appState.msg) return appState;
 
         const internalState = path(statePathSegments, appState);
+        const statePath = statePathSegments.join('.');
+
+        // Map incoming action to BASE action
+        const mappedAction = {
+            ...appState.msg,
+            type: inMapping[appState.msg.type]
+        };
 
         // Get new state and next msg
-        const result = handler(internalState, appState.msg);
+        const result = handler(internalState, mappedAction);
 
         if (!result) return appState;
+
+        // Map outgoing action if it exists
+        const nextMsg = result.nextMsg ? {
+            ...result.nextMsg,
+            type: outMapping[result.nextMsg.type]
+        } : null;
 
         // Update app state
         const updates = {
             executed: [$set, true],
-            nextMsg: [$set, result.nextMsg]
+            nextMsg: [$set, nextMsg]
         };
-
 
         if (result.internalStateUpdate) {
             updates[statePath] = [$set, {
@@ -48,9 +63,9 @@ const createController = (handler, statePathSegments) => {
     };
 };
 
-const handleCounter = (setIncrementByAction, incrementAction, modelIncrementAction) => (internalState, action) => {
+const handleCounter = (internalState, action) => {
     switch(action.type) {
-        case setIncrementByAction:
+        case BASE_COUNTER_CTRL_SET_INCREMENT_BY:
             return {
                 internalStateUpdate: {
                     incrementBy: parseInt(action.payload)
@@ -58,11 +73,11 @@ const handleCounter = (setIncrementByAction, incrementAction, modelIncrementActi
                 nextMsg: null
             };
 
-        case incrementAction:
+        case BASE_COUNTER_CTRL_INCREMENT:
             return {
                 internalStateUpdate: null,
                 nextMsg: {
-                    type: modelIncrementAction,
+                    type: BASE_COUNTER_MODEL_INCREMENT,
                     payload: internalState.incrementBy
                 }
             };
@@ -73,17 +88,44 @@ const handleCounter = (setIncrementByAction, incrementAction, modelIncrementActi
 };
 
 export const counterControllerStateUpdate = createController(
-    handleCounter(COUNTER_CTRL_SET_INCREMENT_BY, COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    COUNTER_CTRL_STATE_PATH_SEGMENTS
+    handleCounter,
+    COUNTER_CTRL_STATE_PATH_SEGMENTS,
+    {
+        inMapping: {
+            [COUNTER_CTRL_SET_INCREMENT_BY]: BASE_COUNTER_CTRL_SET_INCREMENT_BY,
+            [COUNTER_CTRL_INCREMENT]: BASE_COUNTER_CTRL_INCREMENT,
+        },
+        outMapping: {
+            [BASE_COUNTER_MODEL_INCREMENT]: COUNTER_MODEL_INCREMENT
+        }
+    }
 );
 
 export const anotherCounterControllerStateUpdate = createController(
-    handleCounter(ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY, ANOTHER_COUNTER_CTRL_INCREMENT, COUNTER_MODEL_INCREMENT),
-    ANOTHER_COUNTER_CTRL_STATE_PATH_SEGMENTS
+    handleCounter,
+    ANOTHER_COUNTER_CTRL_STATE_PATH_SEGMENTS,
+    {
+        inMapping: {
+            [ANOTHER_COUNTER_CTRL_SET_INCREMENT_BY]: BASE_COUNTER_CTRL_SET_INCREMENT_BY,
+            [ANOTHER_COUNTER_CTRL_INCREMENT]: BASE_COUNTER_CTRL_INCREMENT,
+        },
+        outMapping: {
+            [BASE_COUNTER_MODEL_INCREMENT]: COUNTER_MODEL_INCREMENT
+        }
+    }
 );
 
 export const independentCounterControllerStateUpdate = createController(
-    handleCounter(INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY, INDEPENDENT_COUNTER_CTRL_INCREMENT, INDEPENDENT_COUNTER_MODEL_INCREMENT),
-    INDEPENDENT_COUNTER_CTRL_STATE_PATH_SEGMENTS
+    handleCounter,
+    INDEPENDENT_COUNTER_CTRL_STATE_PATH_SEGMENTS,
+    {
+        inMapping: {
+            [INDEPENDENT_COUNTER_CTRL_SET_INCREMENT_BY]: BASE_COUNTER_CTRL_SET_INCREMENT_BY,
+            [INDEPENDENT_COUNTER_CTRL_INCREMENT]: BASE_COUNTER_CTRL_INCREMENT,
+        },
+        outMapping: {
+            [BASE_COUNTER_MODEL_INCREMENT]: INDEPENDENT_COUNTER_MODEL_INCREMENT
+        }
+    }
 );
 
