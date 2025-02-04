@@ -1,4 +1,4 @@
-import { APP_DATA_PATH, APP_OUTPUT_PATH_SEGMENTS, APP_STATE_PATH } from '../../constants';
+import { APP_DATA_PATH, APP_OUTPUT_PATH_SEGMENTS, APP_STATE_PATH } from '../../framework/constants';
 
 // App Data Paths
 export const ACC_VALUE_DATA_PATH = APP_DATA_PATH + '.accumulator';

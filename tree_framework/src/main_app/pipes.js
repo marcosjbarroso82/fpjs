@@ -25,3 +25,9 @@ export const MODEL_PIPE = [
     counterModelStateUpdate,
     accumulatorModelStateUpdate
 ]
+
+export const MAIN_PIPE = [
+    MODEL_PIPE,
+    CONTROLLER_PIPE,
+    VIEW_PIPE
+  ];

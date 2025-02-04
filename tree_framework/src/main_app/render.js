@@ -7,7 +7,7 @@ import { renderDebug } from './renderDebug';
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
 
 
-export function view(dispatch, appState) {
+export function mainAppView(dispatch, appState) {
     return div({}, [
         renderAccumulatorForm(dispatch, appState),
         renderCounterForm(dispatch, appState),

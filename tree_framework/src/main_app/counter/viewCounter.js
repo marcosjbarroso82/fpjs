@@ -10,7 +10,7 @@ import {
     $remove,
     $filter
   } from "immhelper";
-import { APP_OUTPUT_PATH } from '../../constants';
+import { APP_OUTPUT_PATH } from '../../framework/constants';
 import { path } from 'ramda';
 import {
     COUNTER_DATA_PATH_SEGMENTS,

@@ -1,4 +1,4 @@
-import { EXECUTE_NEXT_MSG } from '../constants';
+import { EXECUTE_NEXT_MSG } from '../framework/constants';
 
 import hh from 'hyperscript-helpers';
 import { h } from 'virtual-dom';
