@@ -24,7 +24,7 @@ import {
 
 const createController = (handler, statePathSegments, { inMapping, outMapping }) => {
     return (appState) => {
-        if (!appState.msg) return appState;
+        if (!appState.msg || appState.executed) return appState;
 
         const internalState = path(statePathSegments, appState);
         const statePath = statePathSegments.join('.');
@@ -52,12 +52,7 @@ const createController = (handler, statePathSegments, { inMapping, outMapping })
             nextMsg: [$set, nextMsg]
         };
 
-        if (result.internalStateUpdate) {
-            updates[statePath] = [$set, {
-                ...internalState,
-                ...result.internalStateUpdate
-            }];
-        }
+        updates[statePath] = [$set, result.internalStateUpdated];
 
         return update(appState, updates);
     };
@@ -67,7 +62,8 @@ const handleCounter = (internalState, action) => {
     switch(action.type) {
         case BASE_COUNTER_CTRL_SET_INCREMENT_BY:
             return {
-                internalStateUpdate: {
+                internalStateUpdated: {
+                    ...internalState,
                     incrementBy: parseInt(action.payload)
                 },
                 nextMsg: null
@@ -75,7 +71,10 @@ const handleCounter = (internalState, action) => {
 
         case BASE_COUNTER_CTRL_INCREMENT:
             return {
-                internalStateUpdate: null,
+                internalStateUpdated: {
+                    ...internalState,
+                    incrementBy: internalState.incrementBy + 1
+                },
                 nextMsg: {
                     type: BASE_COUNTER_MODEL_INCREMENT,
                     payload: internalState.incrementBy
