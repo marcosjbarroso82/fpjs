@@ -16,23 +16,33 @@ function appRender(node, dispatch, state, msg) {
             button({
                 'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
-                    'payload': {	
-                        'path': []
-                    }
+                    'path': [],
+                    'payload': {}
                 })
             }, "Increment Age by One"),
+
 
             button({
                 'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
-                    'payload': {	
-                        'path': ['bestFriend']
-                    }
+                    'path': ['bestFriend'],
+                    'payload': {}
                 })
+
             }, "Increment Best Friend Age by One"),
+
+            button({
+                'onclick': () => dispatch({
+                    'type': 'incrementAgeByOne',
+                    'path': ['bestFriend', 'pet'],
+                    'payload': {}
+                })
+
+            }, "Increment Best Friend Pet Age by One"),
 
 
         ]),
+
 
         hr(),
         div({}, [
@@ -58,30 +68,46 @@ const schema = {
     'properties': {
         'name': {
             'type': 'string',
-            'default': 'John Doe'
+            'default': 'Marcos'
         },
         'age': {
             'type': 'number',
-            'default': 30
+            'default': 42
         },
         'bestFriend': {
             'type': 'object',
+            'actions': {
+        'incrementAgeByOne': (self, payload = {}) => {
+            self.state.age += 1;
+        },
+        'decrementAgeByOne': (self, payload = {}) => {
+            self.state.age -= 1;
+        },
+    },
             'properties': {
                 'name': {
                     'type': 'string',
-                    'default': 'Jane Doe'
+                    'default': 'Matias'
                 },
                 'age': {
                     'type': 'number',
-                    'default': 25
+                    'default': 30
                 },
                 'pet': {
                     'type': 'object',
+                    'actions': {
+        'incrementAgeByOne': (self, payload = {}) => {
+            self.state.age += 1;
+        },
+        'decrementAgeByOne': (self, payload = {}) => {
+            self.state.age -= 1;
+        },
+    },
                     
                     'properties': {
                         'name': {
                             'type': 'string',
-                            'default': 'Rex'
+                            'default': 'Firulais'
                         },
                         'age': {
                             'type': 'number',
@@ -93,21 +119,37 @@ const schema = {
         },
         'worstEnemy': {
             'type': 'object',
+            'actions': {
+        'incrementAgeByOne': (self, payload = {}) => {
+            self.state.age += 1;
+        },
+        'decrementAgeByOne': (self, payload = {}) => {
+            self.state.age -= 1;
+        },
+    },
             'properties': {
                 'name': {
                     'type': 'string',
-                    'default': 'John Doe'
+                    'default': 'Sebastian'
                 },
                 'age': {
                     'type': 'number',
-                    'default': 30
+                    'default': 50
                 },
                 'pet': {
                     'type': 'object',
+                    'actions': {
+        'incrementAgeByOne': (self, payload = {}) => {
+            self.state.age += 1;
+        },
+        'decrementAgeByOne': (self, payload = {}) => {
+            self.state.age -= 1;
+        },
+    },
                     'properties': {
                         'name': {
                             'type': 'string',
-                            'default': 'Rex'
+                            'default': 'Neron'
                         },
                         'age': {
                             'type': 'number',
@@ -151,9 +193,7 @@ function initData(data, schema) {
 
 
 function appRunner(node, initialState, msg) {
-
     let data = initData(initialState['data'] || {}, schema);
-
     let state = {
         data: data
     };
@@ -163,21 +203,35 @@ function appRunner(node, initialState, msg) {
     let rootNode = createElement(currentView);
     node.appendChild(rootNode);
 
-
-
-
     function dispatch(msg) {
         console.log('dispatch', msg);
         
+        // Get the action and context based on the path
+        let currentSchema = schema;
+        let currentState = state.data;
+        let parentStates = [];
+        
+        // Traverse the path to find the correct schema and build up parent state references
+        for (const pathSegment of msg.path) {
+            if (currentSchema.properties && currentSchema.properties[pathSegment]) {
+                currentSchema = currentSchema.properties[pathSegment];
+                parentStates.push(currentState);
+                currentState = currentState[pathSegment];
+            }
+        }
+
+        // Execute the action if it exists in the current schema
+        if (currentSchema.actions && currentSchema.actions[msg.type]) {
+            currentSchema.actions[msg.type]({ state: currentState }, msg.payload);
+        }
+
         state.msg = msg;
 
         const updatedView = appRender(node, dispatch, state, msg);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
         currentView = updatedView;
-
     }
-    
 }
 
 
@@ -187,9 +241,10 @@ const initialState = {
     data: {
         'bestFriend': {
             'pet': {
-                'name': 'Rex',
+                'name': 'Firulais',
                 'age': 3
             }
+
         }
     }
 }
