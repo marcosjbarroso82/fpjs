@@ -8,21 +8,53 @@ import patch from 'virtual-dom/patch';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
 
-function appRender(node, initialState, msg) {
+function appRender(node, dispatch, state, msg) {
     return div({}, [
         h1({}, "App"),
+        div({}, [
+            h2({}, "Actions"),
+            button({
+                'onclick': () => dispatch({
+                    'type': 'incrementAgeByOne',
+                    'payload': {	
+                        'path': []
+                    }
+                })
+            }, "Increment Age by One"),
+
+            button({
+                'onclick': () => dispatch({
+                    'type': 'incrementAgeByOne',
+                    'payload': {	
+                        'path': ['bestFriend']
+                    }
+                })
+            }, "Increment Best Friend Age by One"),
+
+
+        ]),
+
         hr(),
         div({}, [
             h2({}, "Msg"),
             pre({}, JSON.stringify(msg, null, 2)),
             h2({}, "State"),
-            pre({}, JSON.stringify(initialState, null, 2)),
+            pre({}, JSON.stringify(state, null, 2)),
         ])
     ]); 
 }
 
+
 const schema = {
     'type': 'object',
+    'actions': {
+        'incrementAgeByOne': (self, payload = {}) => {
+            self.state.age += 1;
+        },
+        'decrementAgeByOne': (self, payload = {}) => {
+            self.state.age -= 1;
+        },
+    },
     'properties': {
         'name': {
             'type': 'string',
@@ -45,6 +77,7 @@ const schema = {
                 },
                 'pet': {
                     'type': 'object',
+                    
                     'properties': {
                         'name': {
                             'type': 'string',
@@ -126,18 +159,30 @@ function appRunner(node, initialState, msg) {
     };
 
     // Initial render
-    let rootNode = createElement(appRender(node, state, msg));
+    let currentView = appRender(node, dispatch, state, msg);
+    let rootNode = createElement(currentView);
     node.appendChild(rootNode);
+
+
 
 
     function dispatch(msg) {
         console.log('dispatch', msg);
+        
+        state.msg = msg;
+
+        const updatedView = appRender(node, dispatch, state, msg);
+        const patches = diff(currentView, updatedView);
+        rootNode = patch(rootNode, patches);
+        currentView = updatedView;
+
     }
     
 }
 
 
 const node = document.getElementById('app');
+
 const initialState = {
     data: {
         'bestFriend': {
