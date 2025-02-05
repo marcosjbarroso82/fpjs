@@ -16,7 +16,7 @@ function appRender(node, dispatch, state, msg) {
             button({
                 'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
-                    'path': [],
+                    'path': ['profile'],
                     'payload': {}
                 })
             }, "Increment Age by One"),
@@ -25,7 +25,7 @@ function appRender(node, dispatch, state, msg) {
             button({
                 'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
-                    'path': ['bestFriend'],
+                    'path': ['profile', 'bestFriend'],
                     'payload': {}
                 })
 
@@ -34,7 +34,7 @@ function appRender(node, dispatch, state, msg) {
             button({
                 'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
-                    'path': ['bestFriend', 'pet'],
+                    'path': ['profile', 'bestFriend', 'pet'],
                     'payload': {}
                 })
 
@@ -54,109 +54,100 @@ function appRender(node, dispatch, state, msg) {
     ]); 
 }
 
+const incrementAgeByOne = (self, payload = {}) => {
+    self.state.age += 1;
+}
+
+const decrementAgeByOne = (self, payload = {}) => {
+    self.state.age -= 1;
+}
 
 const schema = {
     'type': 'object',
-    'actions': {
-        'incrementAgeByOne': (self, payload = {}) => {
-            self.state.age += 1;
-        },
-        'decrementAgeByOne': (self, payload = {}) => {
-            self.state.age -= 1;
-        },
-    },
     'properties': {
-        'name': {
-            'type': 'string',
-            'default': 'Marcos'
-        },
-        'age': {
-            'type': 'number',
-            'default': 42
-        },
-        'bestFriend': {
+        'profile': {
             'type': 'object',
             'actions': {
-        'incrementAgeByOne': (self, payload = {}) => {
-            self.state.age += 1;
-        },
-        'decrementAgeByOne': (self, payload = {}) => {
-            self.state.age -= 1;
-        },
-    },
+                'incrementAgeByOne': incrementAgeByOne,
+                'decrementAgeByOne': decrementAgeByOne,
+            },
             'properties': {
                 'name': {
                     'type': 'string',
-                    'default': 'Matias'
+                    'default': 'Marcos'
                 },
                 'age': {
                     'type': 'number',
-                    'default': 30
+                    'default': 42
                 },
-                'pet': {
+                'bestFriend': {
                     'type': 'object',
                     'actions': {
-        'incrementAgeByOne': (self, payload = {}) => {
-            self.state.age += 1;
-        },
-        'decrementAgeByOne': (self, payload = {}) => {
-            self.state.age -= 1;
-        },
-    },
-                    
+                        'incrementAgeByOne': incrementAgeByOne,
+                        'decrementAgeByOne': decrementAgeByOne,
+                    },
                     'properties': {
                         'name': {
                             'type': 'string',
-                            'default': 'Firulais'
+                            'default': 'Matias'
                         },
                         'age': {
                             'type': 'number',
-                            'default': 3
+                            'default': 30
+                        },
+                        'pet': {
+                            'type': 'object',
+                            'actions': {
+                                'incrementAgeByOne': incrementAgeByOne,
+                                'decrementAgeByOne': decrementAgeByOne,
+                            },
+                            'properties': {
+                                'name': {
+                                    'type': 'string',
+                                    'default': 'Firulais'
+                                },
+                                'age': {
+                                    'type': 'number',
+                                    'default': 3
+                                }
+                            }
                         }
+                    }
+                },
+                'worstEnemy': {
+                    'type': 'object',
+                    'actions': {
+                        'incrementAgeByOne': incrementAgeByOne,
+                        'decrementAgeByOne': decrementAgeByOne,
+                    },
+                    'properties': {
+                        'name': {
+                            'type': 'string',
+                            'default': 'Sebastian'
+                        },
+                        'age': {
+                            'type': 'number',
+                            'default': 50
+                        },
+                        'pet': {
+                            'type': 'object',
+                            'actions': {
+                                'incrementAgeByOne': incrementAgeByOne,
+                                'decrementAgeByOne': decrementAgeByOne,
+                            },
+                            'properties': {
+                                'name': {
+                                    'type': 'string',
+                                    'default': 'Neron'
+                                },
+                                'age': {
+                                    'type': 'number',
+                                    'default': 3
+                                }
+                            }
+                        }   
                     }
                 }
-            }
-        },
-        'worstEnemy': {
-            'type': 'object',
-            'actions': {
-        'incrementAgeByOne': (self, payload = {}) => {
-            self.state.age += 1;
-        },
-        'decrementAgeByOne': (self, payload = {}) => {
-            self.state.age -= 1;
-        },
-    },
-            'properties': {
-                'name': {
-                    'type': 'string',
-                    'default': 'Sebastian'
-                },
-                'age': {
-                    'type': 'number',
-                    'default': 50
-                },
-                'pet': {
-                    'type': 'object',
-                    'actions': {
-        'incrementAgeByOne': (self, payload = {}) => {
-            self.state.age += 1;
-        },
-        'decrementAgeByOne': (self, payload = {}) => {
-            self.state.age -= 1;
-        },
-    },
-                    'properties': {
-                        'name': {
-                            'type': 'string',
-                            'default': 'Neron'
-                        },
-                        'age': {
-                            'type': 'number',
-                            'default': 3
-                        }
-                    }
-                }   
             }
         }
     }
@@ -239,12 +230,13 @@ const node = document.getElementById('app');
 
 const initialState = {
     data: {
-        'bestFriend': {
-            'pet': {
-                'name': 'Firulais',
-                'age': 3
+        'profile': {
+            'bestFriend': {
+                'pet': {
+                    'name': 'Firulais',
+                    'age': 3
+                }
             }
-
         }
     }
 }
