@@ -3,10 +3,11 @@ import {
     $set,
 } from "immhelper";
 import { path } from 'ramda';
-
+import { createController } from '../../framework/createController';
 import {
     BASE_COUNTER_CTRL_SET_INCREMENT_BY,
     BASE_COUNTER_CTRL_INCREMENT,
+
     BASE_COUNTER_MODEL_INCREMENT,
     COUNTER_CTRL_INCREMENT,
     COUNTER_CTRL_SET_INCREMENT_BY,
@@ -22,41 +23,6 @@ import {
 
 } from './constantsCounter';
 
-const createController = (handler, statePathSegments, { inMapping, outMapping }) => {
-    return (appState) => {
-        if (!appState.msg || appState.executed) return appState;
-
-        const internalState = path(statePathSegments, appState);
-        const statePath = statePathSegments.join('.');
-
-        // Map incoming action to BASE action
-        const mappedAction = {
-            ...appState.msg,
-            type: inMapping[appState.msg.type]
-        };
-
-        // Get new state and next msg
-        const result = handler(internalState, mappedAction);
-
-        if (!result) return appState;
-
-        // Map outgoing action if it exists
-        const nextMsg = result.nextMsg ? {
-            ...result.nextMsg,
-            type: outMapping[result.nextMsg.type]
-        } : null;
-
-        // Update app state
-        const updates = {
-            executed: [$set, true],
-            nextMsg: [$set, nextMsg]
-        };
-
-        updates[statePath] = [$set, result.internalStateUpdated];
-
-        return update(appState, updates);
-    };
-};
 
 const handleCounter = (internalState, action) => {
     switch(action.type) {
@@ -72,8 +38,7 @@ const handleCounter = (internalState, action) => {
         case BASE_COUNTER_CTRL_INCREMENT:
             return {
                 internalStateUpdated: {
-                    ...internalState,
-                    incrementBy: internalState.incrementBy + 1
+                    ...internalState
                 },
                 nextMsg: {
                     type: BASE_COUNTER_MODEL_INCREMENT,
