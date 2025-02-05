@@ -21,167 +21,109 @@ function appRender(node, initialState, msg) {
     ]); 
 }
 
-const dataSchema = {
-    "type": "object",
-    "properties": {
-        "counter1": {
-            "type": "object",
-            "properties": {
-                "count": {"type": "number"}
-            },
-            "actions": {
-                "increment": {
-                    "type": "function",
-                    "callable": (payload, self) => self.count + payload.incrementBy
-
-
+const schema = {
+    'type': 'object',
+    'properties': {
+        'name': {
+            'type': 'string',
+            'default': 'John Doe'
+        },
+        'age': {
+            'type': 'number',
+            'default': 30
+        },
+        'bestFriend': {
+            'type': 'object',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'default': 'Jane Doe'
                 },
-                "init": {
-                    "type": "value",
-                    "value": {
-                        "count": 0
+                'age': {
+                    'type': 'number',
+                    'default': 25
+                },
+                'pet': {
+                    'type': 'object',
+                    'properties': {
+                        'name': {
+                            'type': 'string',
+                            'default': 'Rex'
+                        },
+                        'age': {
+                            'type': 'number',
+                            'default': 3
+                        }
                     }
-
                 }
             }
         },
-
-
-        "counter2": {
-            "type": "object",
-
-            "properties": {
-                "count": {"type": "number"},
-                "incrementBy": {"type": "number"}
-            },
-            "actions": {
-                "increment": {
-                    "type": "function",
-                    "callable": (payload, self) => self.count + payload.incrementBy
+        'worstEnemy': {
+            'type': 'object',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'default': 'John Doe'
                 },
-
-                "init": {
-                    "type": "value",
-                    "value": {
-                        "count": 33
+                'age': {
+                    'type': 'number',
+                    'default': 30
+                },
+                'pet': {
+                    'type': 'object',
+                    'properties': {
+                        'name': {
+                            'type': 'string',
+                            'default': 'Rex'
+                        },
+                        'age': {
+                            'type': 'number',
+                            'default': 3
+                        }
                     }
-                }
+                }   
             }
-        }
-    }
-
-}
-
-function initFromSchema(schema) {
-    if (schema.actions && schema.actions.init) {
-        return schema.actions.init.value;
-    }
-    
-    if (schema.type === "object" && schema.properties) {
-        const result = {};
-        for (const [key, value] of Object.entries(schema.properties)) {
-            result[key] = initFromSchema(value);
-        }
-        return result;
-    }
-    
-    // Default values for primitive types
-    switch (schema.type) {
-        case "number": return 0;
-        case "string": return "";
-        case "boolean": return false;
-        default: return null;
-    }
-}
-
-function dataUpdate(initialDataState, msg) {
-    switch (msg.type) {
-        case 'INIT':
-            return initFromSchema(dataSchema);
-        case 'INCREMENT':
-            const { counter, incrementBy } = msg.payload;
-            const action = dataSchema.actions[counter].increment;
-            const callable = action.callable;
-            const args = action.args;
-            const result = callable(...args);
-            return result;
-        default:
-            return initialDataState;
-
-    }
-}
-
-const controllerSchema = {
-    'counter1Ctrl': {
-        'ctrlType': 'counter',
-        'dataPath': ['counter1'],
-        'props': {
-            'value': {
-                'dataPath': ['count']
-            },
-            'incrementBy': {
-                'defaultValue': 2
-            }
-        }
-    },
-    'counter2Ctrl': {
-        'ctrlType': 'counter',
-        'dataPath': ['counter2'],
-        'props': {
-            'value': {
-                'dataPath': ['count']
-            },
-            'incrementBy': {
-                'defaultValue': 3
-            }
-
         }
     }
 }
 
+function initData(data, schema) {
+    // If schema is not an object or has no properties, return data as is
+    if (!schema || schema.type !== 'object' || !schema.properties) {
+        return data;
+    }
 
+    // Initialize result object
+    const result = { ...data };
 
-// controllersDataUpdate
-function controllersDataUpdate(data, ctrlData, msg) {
-    const result = {};
-    
-    for (const [ctrlId, ctrlSchema] of Object.entries(controllerSchema)) {
-        result[ctrlId] = {};
-        
-        // Process each prop defined in the controller schema
-        for (const [propName, propConfig] of Object.entries(ctrlSchema.props)) {
-            if (propConfig.dataPath) {
-                // If dataPath is defined, get value from data object
-                let value = data;
-                for (const pathPart of [...ctrlSchema.dataPath, ...propConfig.dataPath]) {
-                    value = value[pathPart];
-                }
-                result[ctrlId][propName] = value;
-            } else if ('defaultValue' in propConfig) {
-                // If defaultValue is defined, use it
-                result[ctrlId][propName] = propConfig.defaultValue;
+    // For each property in the schema
+    for (const [key, propSchema] of Object.entries(schema.properties)) {
+        // If property doesn't exist in data, initialize it
+        if (!(key in result)) {
+            if (propSchema.type === 'object' && propSchema.properties) {
+                // Recursively handle nested objects
+                result[key] = initData({}, propSchema);
+            } else if ('default' in propSchema) {
+                // Use default value if available
+                result[key] = propSchema.default;
             }
+        } else if (propSchema.type === 'object' && propSchema.properties) {
+            // If property exists and is an object, recursively merge
+            result[key] = initData(result[key], propSchema);
         }
     }
-    
+
     return result;
 }
 
 
-
 function appRunner(node, initialState, msg) {
 
-
-    let data = dataUpdate(initialState['data'], msg);
-    let ctrlData = controllersDataUpdate(data, initialState['ctrlData'], msg);
-
-
+    let data = initData(initialState['data'] || {}, schema);
 
     let state = {
-        data: data,
-        ctrlData: ctrlData
+        data: data
     };
-
 
     // Initial render
     let rootNode = createElement(appRender(node, state, msg));
@@ -196,9 +138,16 @@ function appRunner(node, initialState, msg) {
 
 
 const node = document.getElementById('app');
-const initialState = {}
-const msg = {
-    type: 'INIT'
+const initialState = {
+    data: {
+        'bestFriend': {
+            'pet': {
+                'name': 'Rex',
+                'age': 3
+            }
+        }
+    }
 }
+const msg = {}
 
 appRunner(node, initialState, msg);
