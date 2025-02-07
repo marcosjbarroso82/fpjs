@@ -8,14 +8,66 @@ import patch from 'virtual-dom/patch';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
 
-function appRender(node, dispatch, state, msg) {
+function appRender(dispatch, state, msg) {
     return div({}, [
         h1({}, "App"),
         div({}, [
             h2({}, "Actions"),
             button({
                 'onclick': () => dispatch({
+                    'type': 'addItemToShoppingCart',
+                    'path': ['shoppingCart'],
+                    'payload': {
+                        'name': 'Laptop',
+                        'price': 1000,
+                        'quantity': 1
+                    }
+                })
+
+            }, "Add Laptop to Shopping Cart"),
+            button({
+                'onclick': () => dispatch({
+                    'type': 'addItemToShoppingCart',
+                    'path': ['shoppingCart'],
+                    'payload': {
+                        'name': 'Laptop',
+                        'price': 500,
+                        'quantity': 1
+                    }
+                })
+            }, "Add Laptop to Shopping Cart Reduce Price"),
+            button({
+                'onclick': () => dispatch({
+                    'type': 'addItemToShoppingCart',
+                    'path': ['shoppingCart'],
+                    'payload': {
+                        'name': 'Mouse',
+                        'price': 50,
+                        'quantity': 2
+                    }
+                })
+            }, "Add Two Mouse to Shopping Cart"),
+
+            button({
+                'onclick': () => dispatch({
+                    'type': 'incrementExistingItemQuantity',
+                    'path': ['shoppingCart'],
+                    'payload': {
+                        'name': 'Mouse',    
+                        'quantity': 1
+                    }
+                })
+            }, "Increment Mouse Quantity"),
+
+
+            hr(),
+
+
+
+            button({
+                'onclick': () => dispatch({
                     'type': 'incrementAgeByOne',
+
                     'path': ['profile'],
                     'payload': {}
                 })
@@ -62,9 +114,76 @@ const decrementAgeByOne = (self, payload = {}) => {
     self.state.age -= 1;
 }
 
+const addItemToShoppingCart = (self, payload = {}) => {
+    const existingItemIndex = self.state.items.findIndex(item => item.name === payload.name);
+    
+    if (existingItemIndex >= 0) {
+        // Subtract the old item's total from the cart total
+        const existingItem = self.state.items[existingItemIndex];
+        self.state.total -= existingItem.price * existingItem.quantity;
+        
+        // Update existing item's quantity and price
+        existingItem.quantity += payload.quantity;
+        existingItem.price = payload.price;
+        
+        // Add the new total for this item
+        self.state.total += existingItem.price * existingItem.quantity;
+    } else {
+        // Add new item
+        self.state.items.push(payload);
+        self.state.total += payload.price * payload.quantity;
+    }
+}
+
+const incrementExistingItemQuantity = (self, payload = {}) => {
+    const existingItemIndex = self.state.items.findIndex(item => item.name === payload.name);
+    if (existingItemIndex >= 0) {
+        const item = self.state.items[existingItemIndex];
+        item.quantity += payload.quantity;
+        self.state.total += item.price * payload.quantity;
+    }
+}
+
+
+
 const schema = {
     'type': 'object',
     'properties': {
+        'shoppingCart': {
+            'type': 'object',
+            'actions': {
+                'addItemToShoppingCart': addItemToShoppingCart,
+                'incrementExistingItemQuantity': incrementExistingItemQuantity,
+            },
+
+            'properties': {
+                'total': {
+                    'type': 'number',
+
+                    'default': 0
+                },
+                'items': {
+                    'type': 'array',
+                    'default': [],
+                    'items': {
+
+                        'type': 'object',
+                        'properties': {
+                            'name': {
+                                'type': 'string',
+                            },
+                            'price': {
+                                'type': 'number',
+                            },
+                            'quantity': {
+                                'type': 'number',
+                            }
+                        }
+                    }
+                }
+
+            }
+        },
         'profile': {
             'type': 'object',
             'actions': {
@@ -190,7 +309,7 @@ function appRunner(node, initialState, msg) {
     };
 
     // Initial render
-    let currentView = appRender(node, dispatch, state, msg);
+    let currentView = appRender(dispatch, state, msg);
     let rootNode = createElement(currentView);
     node.appendChild(rootNode);
 
@@ -218,10 +337,11 @@ function appRunner(node, initialState, msg) {
 
         state.msg = msg;
 
-        const updatedView = appRender(node, dispatch, state, msg);
+        const updatedView = appRender(dispatch, state, msg);
         const patches = diff(currentView, updatedView);
         rootNode = patch(rootNode, patches);
         currentView = updatedView;
+
     }
 }
 
@@ -230,6 +350,8 @@ const node = document.getElementById('app');
 
 const initialState = {
     data: {
+        'shoppingCart': {
+        },
         'profile': {
             'bestFriend': {
                 'pet': {
