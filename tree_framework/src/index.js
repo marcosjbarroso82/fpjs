@@ -5,6 +5,8 @@ import { h } from 'virtual-dom';
 import createElement from 'virtual-dom/create-element';
 import diff from 'virtual-dom/diff';
 import patch from 'virtual-dom/patch';
+import Ajv from 'ajv';
+import * as R from 'ramda';
 
 const { div, h1, h2, p, table, tr, td, th, button, input, pre, hr, label, br, ul, li } = hh(h);
 
@@ -106,43 +108,109 @@ function appRender(dispatch, state, msg) {
     ]); 
 }
 
-const incrementAgeByOne = (self, payload = {}) => {
-    self.state.age += 1;
-}
+// Configure Ajv to accept custom keywords
+const ajv = new Ajv({
+    useDefaults: true,
+    coerceTypes: true,
+    allowUnionTypes: true
+});
 
-const decrementAgeByOne = (self, payload = {}) => {
-    self.state.age -= 1;
-}
+// Define custom keyword for actions
+ajv.addKeyword({
+    keyword: '$actions',
+    schemaType: 'object',
+    validate: () => true, // Always valid since this is just for storing actions
+    metaSchema: {
+        type: 'object'
+    }
+});
 
-const addItemToShoppingCart = (self, payload = {}) => {
-    const existingItemIndex = self.state.items.findIndex(item => item.name === payload.name);
+// Helper function to validate state against schema
+const validateState = (schema, state) => {
+    const validate = ajv.compile(schema);
+    const isValid = validate(state);
+    
+    if (!isValid) {
+        console.error('Validation errors:', validate.errors);
+        return false;
+    }
+    return true;
+};
+
+// Modified action functions to be pure and return new state
+const incrementAgeByOne = (state, payload = {}) => ({
+    ...state,
+    age: state.age + 1
+});
+
+const decrementAgeByOne = (state, payload = {}) => ({
+    ...state,
+    age: state.age - 1
+});
+
+const addItemToShoppingCart = (state, payload = {}) => {
+    const existingItemIndex = state.items.findIndex(item => item.name === payload.name);
+    const newState = R.clone(state);
     
     if (existingItemIndex >= 0) {
-        // Subtract the old item's total from the cart total
-        const existingItem = self.state.items[existingItemIndex];
-        self.state.total -= existingItem.price * existingItem.quantity;
+        const existingItem = newState.items[existingItemIndex];
+        const newTotal = newState.total - (existingItem.price * existingItem.quantity) + 
+                        (payload.price * (existingItem.quantity + payload.quantity));
         
-        // Update existing item's quantity and price
-        existingItem.quantity += payload.quantity;
-        existingItem.price = payload.price;
+        // Validate total before proceeding
+        if (!validateState(schema.properties.shoppingCart, {
+            ...newState,
+            total: newTotal,
+        })) {
+            return state; // Return unchanged state if validation fails
+        }
         
-        // Add the new total for this item
-        self.state.total += existingItem.price * existingItem.quantity;
+        newState.total = newTotal;
+        newState.items[existingItemIndex] = {
+            ...existingItem,
+            quantity: existingItem.quantity + payload.quantity,
+            price: payload.price
+        };
     } else {
-        // Add new item
-        self.state.items.push(payload);
-        self.state.total += payload.price * payload.quantity;
+        const newTotal = newState.total + (payload.price * payload.quantity);
+        
+        // Validate total before proceeding
+        if (!validateState(schema.properties.shoppingCart, {
+            ...newState,
+            total: newTotal,
+            items: [...newState.items, payload]
+        })) {
+            return state; // Return unchanged state if validation fails
+        }
+        
+        newState.items.push(payload);
+        newState.total = newTotal;
     }
-}
+    
+    return newState;
+};
 
-const incrementExistingItemQuantity = (self, payload = {}) => {
-    const existingItemIndex = self.state.items.findIndex(item => item.name === payload.name);
+const incrementExistingItemQuantity = (state, payload = {}) => {
+    const existingItemIndex = state.items.findIndex(item => item.name === payload.name);
     if (existingItemIndex >= 0) {
-        const item = self.state.items[existingItemIndex];
+        const newState = R.clone(state);
+        const item = newState.items[existingItemIndex];
+        const newTotal = newState.total + (item.price * payload.quantity);
+        
+        // Validate before proceeding
+        if (!validateState(schema.properties.shoppingCart, {
+            ...newState,
+            total: newTotal
+        })) {
+            return state; // Return unchanged state if validation fails
+        }
+        
         item.quantity += payload.quantity;
-        self.state.total += item.price * payload.quantity;
+        newState.total = newTotal;
+        return newState;
     }
-}
+    return state;
+};
 
 
 
@@ -151,17 +219,18 @@ const schema = {
     'properties': {
         'shoppingCart': {
             'type': 'object',
-            'actions': {
+            '$actions': {
                 'addItemToShoppingCart': addItemToShoppingCart,
                 'incrementExistingItemQuantity': incrementExistingItemQuantity,
             },
-
             'properties': {
                 'total': {
                     'type': 'number',
-
-                    'default': 0
+                    'default': 0,
+                    'maximum': 3000,
+                    'minimum': 0
                 },
+
                 'items': {
                     'type': 'array',
                     'default': [],
@@ -181,12 +250,11 @@ const schema = {
                         }
                     }
                 }
-
             }
         },
         'profile': {
             'type': 'object',
-            'actions': {
+            '$actions': {
                 'incrementAgeByOne': incrementAgeByOne,
                 'decrementAgeByOne': decrementAgeByOne,
             },
@@ -201,7 +269,7 @@ const schema = {
                 },
                 'bestFriend': {
                     'type': 'object',
-                    'actions': {
+                    '$actions': {
                         'incrementAgeByOne': incrementAgeByOne,
                         'decrementAgeByOne': decrementAgeByOne,
                     },
@@ -216,7 +284,7 @@ const schema = {
                         },
                         'pet': {
                             'type': 'object',
-                            'actions': {
+                            '$actions': {
                                 'incrementAgeByOne': incrementAgeByOne,
                                 'decrementAgeByOne': decrementAgeByOne,
                             },
@@ -235,7 +303,7 @@ const schema = {
                 },
                 'worstEnemy': {
                     'type': 'object',
-                    'actions': {
+                    '$actions': {
                         'incrementAgeByOne': incrementAgeByOne,
                         'decrementAgeByOne': decrementAgeByOne,
                     },
@@ -250,7 +318,7 @@ const schema = {
                         },
                         'pet': {
                             'type': 'object',
-                            'actions': {
+                            '$actions': {
                                 'incrementAgeByOne': incrementAgeByOne,
                                 'decrementAgeByOne': decrementAgeByOne,
                             },
@@ -316,32 +384,29 @@ function appRunner(node, initialState, msg) {
     function dispatch(msg) {
         console.log('dispatch', msg);
         
-        // Get the action and context based on the path
-        let currentSchema = schema;
-        let currentState = state.data;
-        let parentStates = [];
+        const stateLens = R.lensPath(['data', ...msg.path]);
+        const currentState = R.view(stateLens, state);
+        const currentSchema = msg.path.reduce(
+            (schema, path) => schema.properties[path],
+            schema
+        );
         
-        // Traverse the path to find the correct schema and build up parent state references
-        for (const pathSegment of msg.path) {
-            if (currentSchema.properties && currentSchema.properties[pathSegment]) {
-                currentSchema = currentSchema.properties[pathSegment];
-                parentStates.push(currentState);
-                currentState = currentState[pathSegment];
+        if (currentSchema.$actions && currentSchema.$actions[msg.type]) {
+            const action = currentSchema.$actions[msg.type];
+            const newState = action(currentState, msg.payload);
+            
+            // Only update if validation passes
+            if (validateState(currentSchema, newState)) {
+                state = R.set(stateLens, newState, state);
+                
+                const updatedView = appRender(dispatch, state, msg);
+                const patches = diff(currentView, updatedView);
+                rootNode = patch(rootNode, patches);
+                currentView = updatedView;
+            } else {
+                console.error('State update failed validation');
             }
         }
-
-        // Execute the action if it exists in the current schema
-        if (currentSchema.actions && currentSchema.actions[msg.type]) {
-            currentSchema.actions[msg.type]({ state: currentState }, msg.payload);
-        }
-
-        state.msg = msg;
-
-        const updatedView = appRender(dispatch, state, msg);
-        const patches = diff(currentView, updatedView);
-        rootNode = patch(rootNode, patches);
-        currentView = updatedView;
-
     }
 }
 
